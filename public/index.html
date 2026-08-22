@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIMVENKO - Sistem Manajemen Inventaris</title>
+    
+    <!-- Memanggil file CSS dari dalam folder public/css/ -->
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/barang.css">
+</head>
+<body>
+
+    <!-- SIDEBAR / MENU NAVIGASI -->
+<!-- SIDEBAR / MENU NAVIGASI -->
+    <aside class="sidebar" id="sidebar-utama">
+        <div class="sidebar-top">
+            <div class="logo">
+                <h2>📦 SIMVENKO</h2>
+            </div>
+            <nav>
+                <button class="nav-btn active" id="nav-dashboard">📊 Dashboard</button>
+                <button class="nav-btn" id="nav-barang">📋 Data Barang</button>
+                <button class="nav-btn" id="nav-transaksi">🔄 Transaksi & Riwayat</button>
+            </nav>
+        </div>
+
+        <!-- Tombol Logout di Pojok Kiri Bawah -->
+        <div class="sidebar-bottom">
+            <button id="btn-logout" class="btn-logout-sidebar">🚪 Logout</button>
+        </div>
+    </aside>
+
+    <!-- AREA KONTEN UTAMA -->
+    <main class="content" id="konten-utama" >
+
+        <!-- 1. HALAMAN DASHBOARD -->
+        <section id="halaman-dashboard" class="halaman active">
+            <h1>Dashboard Overview</h1>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Total Produk</h3>
+                    <p id="dash-total">0</p>
+                </div>
+                <div class="card warning">
+                    <h3>Stok Menipis</h3>
+                    <p id="dash-menipis">0</p>
+                </div>
+                <div class="card danger">
+                    <h3>Stok Habis</h3>
+                    <p id="dash-habis">0</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. HALAMAN DATA BARANG -->
+        <section id="halaman-barang" class="halaman">
+            <h1>Pengelolaan Data Barang</h1>
+            <div class="toolbar">
+                <input type="text" id="input-pencarian" placeholder="🔍 Cari barang (nama/kode)...">
+                <button id="btn-tambah" class="btn-primary">+ Tambah Barang Baru</button>
+            </div>
+            
+            <table class="tabel-data">
+                <thead>
+                    <tr>
+                        <th>Kode</th>
+                        <th>Nama Barang</th>
+                        <th>Kategori</th>
+                        <th>Harga</th>
+                        <th>Stok</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tabel-barang-body">
+                    <!-- Data barang akan disuntikkan ke sini oleh file barang.js -->
+                </tbody>
+            </table>
+        </section>
+
+<!-- 3. HALAMAN TRANSAKSI & RIWAYAT -->
+        <section id="halaman-transaksi" class="halaman">
+            <h1>Catat Transaksi Baru</h1>
+            
+            <!-- Wadah Form Transaksi -->
+            <div class="card" style="margin-bottom: 30px; text-align: left; border-top: 4px solid #9b59b6;">
+                <form id="form-transaksi" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                    
+                    <select id="trx-jenis" required style="padding: 10px; border-radius: 4px; border: 1px solid #ccc;">
+                        <option value="masuk">📥 Barang Masuk (Restock)</option>
+                        <option value="keluar">📤 Barang Keluar (Terjual/Dipakai)</option>
+                    </select>
+
+                    <select id="trx-barang" required style="padding: 10px; border-radius: 4px; border: 1px solid #ccc; flex: 1;">
+                        <option value="">-- Pilih Barang --</option>
+                        <!-- Daftar barang akan disuntikkan ke sini otomatis oleh JS -->
+                    </select>
+
+                    <input type="number" id="trx-jumlah" placeholder="Jumlah" required min="1" style="padding: 10px; border-radius: 4px; border: 1px solid #ccc; width: 100px;">
+                    
+                    <input type="text" id="trx-keterangan" placeholder="Keterangan / Supplier" required style="padding: 10px; border-radius: 4px; border: 1px solid #ccc; flex: 1;">
+                    
+                    <button type="submit" class="btn-primary" style="background-color: #9b59b6;">Simpan Transaksi</button>
+                </form>
+            </div>
+
+            <h2>Riwayat Transaksi</h2>
+            <table class="tabel-data">
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Jenis</th>
+                        <th>Barang</th>
+                        <th>Jumlah</th>
+                        <th>Keterangan</th>
+                        <th>Petugas</th>
+                    </tr>
+                </thead>
+                <tbody id="tabel-riwayat-body">
+                    <!-- Data riwayat akan disuntikkan ke sini -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- MODAL TAMBAH BARANG (Form Popup)               -->
+        <!-- ============================================== -->
+        <div id="modal-tambah" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" id="tutup-modal">&times;</span>
+                <h2>Tambah Barang Baru</h2>
+                <form id="form-tambah-barang">
+                    <input type="text" id="input-kode" placeholder="Kode Barang (ex: BRG-002)" required>
+                    <input type="text" id="input-nama" placeholder="Nama Barang" required>
+                    <input type="text" id="input-kategori" placeholder="Kategori" required>
+                    <input type="number" id="input-harga" placeholder="Harga Satuan" required>
+                    <input type="text" id="input-satuan" placeholder="Satuan (ex: pcs, box)" required>
+                    <input type="number" id="input-stok" placeholder="Stok Awal" required>
+                    <input type="number" id="input-batas" placeholder="Batas Minimum Stok (ex: 5)" required>
+                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 15px;">Simpan Barang</button>
+                </form>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Memanggil file JavaScript dari dalam folder public/js/ -->
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/transaksi.js"></script>
+    <script src="js/barang.js"></script>
+</body>
+</html>
+
+<!-- ============================================== -->
+        <!-- MODAL EDIT BARANG (Form Popup)                 -->
+        <!-- ============================================== -->
+        <div id="modal-edit" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" id="tutup-modal-edit">&times;</span>
+                <h2>Edit Data Barang</h2>
+                <form id="form-edit-barang">
+                    <!-- Input tersembunyi untuk menyimpan ID lama -->
+                    <input type="hidden" id="edit-kode-lama">
+                    
+                    <input type="text" id="edit-kode" placeholder="Kode Barang" required>
+                    <input type="text" id="edit-nama" placeholder="Nama Barang" required>
+                    <input type="text" id="edit-kategori" placeholder="Kategori" required>
+                    <input type="number" id="edit-harga" placeholder="Harga Satuan" required>
+                    <input type="text" id="edit-satuan" placeholder="Satuan (ex: pcs, box)" required>
+                    <input type="number" id="edit-stok" placeholder="Stok Awal" required>
+                    <input type="number" id="edit-batas" placeholder="Batas Minimum Stok" required>
+                    <button type="submit" class="btn-primary" style="background-color: #3498db; width: 100%; margin-top: 15px;">Update Barang</button>
+                </form>
+            </div>
+        </div>
+<!-- ============================================== -->
+    <!-- HALAMAN LOGIN                                  -->
+    <!-- ============================================== -->
+    <div id="halaman-login">
+        <div class="login-box">
+            <h2>📦 SIMVENKO</h2>
+            <p>Silakan Login (Admin)</p>
+            <form id="form-login">
+                <input type="text" id="login-username" placeholder="Username" required>
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button type="submit" class="btn-primary">Login</button>
+            </form>
+        </div>
+    </div>
+

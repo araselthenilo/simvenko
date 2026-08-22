@@ -1,0 +1,66 @@
+{
+  "admin": {
+      "username": "admin",
+      "password": "123"
+  },
+  "barang": [
+    {
+      "id_barang": "BRG-001",
+      "nama": "Contoh Produk A",
+      "kategori": "Elektronik",
+      "harga": 50000,
+      "satuan": "pcs",
+      "stok": 25,
+      "batas_minimum": 5
+    },
+    {
+      "id_barang": "ERT-002",
+      "nama": "Jaja Gina",
+      "kategori": "jaja",
+      "harga": 5000,
+      "satuan": "pcs",
+      "stok": 5,
+      "batas_minimum": 10
+    }
+  ],
+  "transaksi": [
+    {
+      "id_transaksi": "TRX-001",
+      "tanggal": "2026-08-22",
+      "jenis": "masuk",
+      "id_barang": "BRG-001",
+      "jumlah": 15,
+      "keterangan": "Stok Awal",
+      "petugas": "Admin 1"
+    }
+  ],
+  "riwayat": [
+    {
+      "jenis": "keluar",
+      "id_barang": "ERT-002",
+      "jumlah": 25,
+      "keterangan": "habis di beli",
+      "id_transaksi": "TRX-1787394434899",
+      "tanggal": "2026-08-22",
+      "petugas": "Admin"
+    },
+    {
+      "jenis": "keluar",
+      "id_barang": "BRG-001",
+      "jumlah": 5,
+      "keterangan": "sumadi",
+      "id_transaksi": "TRX-1787394356097",
+      "tanggal": "2026-08-22",
+      "petugas": "Admin"
+    },
+    {
+      "jenis": "masuk",
+      "id_barang": "BRG-001",
+      "jumlah": 10,
+      "keterangan": "sumadi",
+      "id_transaksi": "TRX-1787394302865",
+      "tanggal": "2026-08-22",
+      "petugas": "Admin"
+    }
+  ]
+}
