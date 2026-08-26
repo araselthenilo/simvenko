@@ -228,6 +228,15 @@ body {
     line-height: 1.2;
 }
 
+.sidebar-user-uname {
+    display: block;
+    font-size: 11px;
+    color: #95a5a6;
+    margin-top: 2px;
+    font-family: monospace;
+    letter-spacing: 0.3px;
+}
+
 .sidebar-user-role {
     display: flex;
     align-items: center;
@@ -256,7 +265,7 @@ body {
 
 .sidebar-user-card:hover .sidebar-user-action {
     color: #3498db;
-    transform: rotate(30deg);
+    transform: rotate(45deg);
     background: rgba(52, 152, 219, 0.15);
 }
 
@@ -319,6 +328,20 @@ body {
     flex-wrap: wrap;
 }
 
+.badge-uname {
+    font-size: 11px;
+    background: #edf2f7;
+    color: #4a5568;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid #cbd5e0;
+    font-family: monospace;
+}
+
 .badge-role {
     font-size: 11px;
     background: #e8f4fd;
@@ -330,6 +353,34 @@ body {
     align-items: center;
     gap: 4px;
     border: 1px solid #d0e7fa;
+}
+
+.input-readonly-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-readonly-wrapper input.input-locked {
+    width: 100%;
+    padding: 9px 36px 9px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    font-size: 13.5px;
+    background-color: #f1f5f9;
+    color: #64748b;
+    cursor: not-allowed;
+    font-family: monospace;
+    font-weight: 600;
+    user-select: all;
+}
+
+.input-readonly-wrapper .locked-icon {
+    position: absolute;
+    right: 12px;
+    color: #94a3b8;
+    font-size: 13px;
+    pointer-events: none;
 }
 
 .badge-status-online {

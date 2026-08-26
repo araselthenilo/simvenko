@@ -199,7 +199,29 @@ async function aktifkanDataKategori(id) {
     }
 }
 
-// Mengirim permintaan update profil & ganti password admin ke server
+// Memeriksa status sesi login via HTTP-Only cookie
+async function checkAuthSession() {
+    try {
+        const response = await fetch('/api/auth/me');
+        return await response.json();
+    } catch (error) {
+        console.error("Gagal memeriksa sesi auth:", error);
+        return { loggedIn: false };
+    }
+}
+
+// Melakukan logout dan menghapus cookie sesi di server
+async function logoutUser() {
+    try {
+        const response = await fetch('/api/logout', { method: 'POST' });
+        return await response.json();
+    } catch (error) {
+        console.error("Gagal logout:", error);
+        return { sukses: false };
+    }
+}
+
+// Mengirim permintaan update profil (nama lengkap) & ganti password admin ke server
 async function updateProfilAdmin(dataUpdateProfil) {
     try {
         const response = await fetch('/api/admin/update-profil', {
@@ -211,14 +233,14 @@ async function updateProfilAdmin(dataUpdateProfil) {
         if (!response.ok) {
             return { sukses: false, message: data.message || 'Gagal memperbarui profil!' };
         }
-        return { sukses: true, message: data.message || 'Profil berhasil diperbarui!', username: data.username };
+        return { sukses: true, message: data.message || 'Profil berhasil diperbarui!', user: data.user };
     } catch (error) {
         console.error("Gagal memperbarui profil admin:", error);
         return { sukses: false, message: 'Terjadi kesalahan jaringan saat memperbarui profil.' };
     }
 }
 
-// Mengirim permintaan ganti password admin ke server
+// Mengirim permintaan ganti password admin ke server (kompatibilitas)
 async function gantiPasswordAdmin(dataGantiPassword) {
     try {
         const response = await fetch('/api/admin/ganti-password', {
@@ -230,7 +252,7 @@ async function gantiPasswordAdmin(dataGantiPassword) {
         if (!response.ok) {
             return { sukses: false, message: data.message || 'Gagal mengganti password!' };
         }
-        return { sukses: true, message: data.message || 'Password berhasil diperbarui!', username: data.username };
+        return { sukses: true, message: data.message || 'Password berhasil diperbarui!', user: data.user };
     } catch (error) {
         console.error("Gagal mengganti password admin:", error);
         return { sukses: false, message: 'Terjadi kesalahan jaringan saat mengganti password.' };

@@ -1,5 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // --- 1. SISTEM LOGIN ---
+document.addEventListener('DOMContentLoaded', async () => {
+    // --- 1. SISTEM LOGIN & SESI COOKIE ---
     const halamanLogin = document.getElementById('halaman-login');
     const sidebarUtama = document.getElementById('sidebar-utama');
     const kontenUtama = document.getElementById('konten-utama');
@@ -28,10 +28,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (usernameInput) usernameInput.addEventListener('input', hideLoginError);
     if (passwordInput) passwordInput.addEventListener('input', hideLoginError);
 
-    // Cek apakah admin sudah login sebelumnya (pakai localStorage browser)
-    if (localStorage.getItem('simvenko_login') === 'true') {
-        tampilkanHalamanUtama();
+    // Cek status sesi aktif dari server (HTTP-Only Cookie)
+    async function verifikasiSesiLogin() {
+        if (typeof checkAuthSession === 'function') {
+            const auth = await checkAuthSession();
+            if (auth && auth.loggedIn && auth.user) {
+                localStorage.setItem('simvenko_login', 'true');
+                localStorage.setItem('simvenko_user', auth.user.nama_lengkap || 'Administrator');
+                localStorage.setItem('simvenko_uname', auth.user.username || 'admin');
+                tampilkanHalamanUtama(auth.user);
+                return true;
+            }
+        }
+        
+        // Fallback jika browser masih memiliki flag login
+        if (localStorage.getItem('simvenko_login') === 'true') {
+            tampilkanHalamanUtama();
+        }
+        return false;
     }
+
+    // Jalankan verifikasi sesi saat pertama kali halaman dimuat
+    verifikasiSesiLogin();
 
     // Menangani klik tombol login
     formLogin.addEventListener('submit', async (e) => {
@@ -48,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Kirim data ke server untuk dicek
+            // Kirim data ke server (password diverifikasi menggunakan Bcrypt di backend)
             const response = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -57,11 +75,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const hasil = await response.json();
 
-            if (hasil.sukses) {
-                // Jika sukses, simpan status login & username di browser dan buka aplikasi
+            if (hasil.sukses && hasil.user) {
+                // Simpan status dan profil pengguna
                 localStorage.setItem('simvenko_login', 'true');
-                localStorage.setItem('simvenko_user', usernameVal || 'Admin');
-                tampilkanHalamanUtama();
+                localStorage.setItem('simvenko_user', hasil.user.nama_lengkap || 'Administrator');
+                localStorage.setItem('simvenko_uname', hasil.user.username || usernameVal);
+                tampilkanHalamanUtama(hasil.user);
             } else {
                 showLoginError(hasil.message || 'Username atau password salah!');
             }
@@ -70,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- FITUR PEEK PASSWORD ---
+    // --- FITUR PEEK PASSWORD DI HALAMAN LOGIN ---
     const togglePassword = document.getElementById('toggle-password');
     const loginPassword = document.getElementById('login-password');
 
@@ -86,30 +105,36 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function updateProfilDisplay(customName) {
-        const username = customName || localStorage.getItem('simvenko_user') || 'admin';
+    function updateProfilDisplay(userObj) {
+        const namaLengkap = (userObj && userObj.nama_lengkap) || localStorage.getItem('simvenko_user') || 'Administrator';
+        const uname = (userObj && userObj.username) || localStorage.getItem('simvenko_uname') || 'admin';
+
         const sidebarUserName = document.getElementById('sidebar-user-name');
-        const modalProfilUsername = document.getElementById('modal-profil-username');
+        const sidebarUserUname = document.getElementById('sidebar-user-uname');
+        const modalProfilDisplayName = document.getElementById('modal-profil-display-name');
+        const modalProfilUnameBadge = document.getElementById('modal-profil-uname-badge');
+        const profilInputNama = document.getElementById('profil-input-nama');
         const profilInputUsername = document.getElementById('profil-input-username');
 
-        if (sidebarUserName) sidebarUserName.textContent = username;
-        if (modalProfilUsername) modalProfilUsername.textContent = username;
-        if (profilInputUsername && (!customName || profilInputUsername.value !== username)) {
-            profilInputUsername.value = username;
-        }
+        if (sidebarUserName) sidebarUserName.textContent = namaLengkap;
+        if (sidebarUserUname) sidebarUserUname.textContent = `@${uname}`;
+        if (modalProfilDisplayName) modalProfilDisplayName.textContent = namaLengkap;
+        if (modalProfilUnameBadge) modalProfilUnameBadge.innerHTML = `<i class="fa-solid fa-at"></i> ${uname}`;
+        if (profilInputNama) profilInputNama.value = namaLengkap;
+        if (profilInputUsername) profilInputUsername.value = uname;
     }
 
-    function tampilkanHalamanUtama() {
+    function tampilkanHalamanUtama(userObj) {
         halamanLogin.style.display = 'none'; // Sembunyikan layar login
         sidebarUtama.style.display = 'flex'; // Munculkan sidebar
         kontenUtama.style.display = 'block'; // Munculkan konten utama
-        updateProfilDisplay();
+        updateProfilDisplay(userObj);
     }
 
     // Inisialisasi tampilan profil saat pertama kali dibuka
     updateProfilDisplay();
 
-    // --- 2. LOGIKA NAVIGASI MENU (KODE LAMA) ---
+    // --- 2. LOGIKA NAVIGASI MENU ---
     const navButtons = document.querySelectorAll('.nav-btn');
     const halamanSections = document.querySelectorAll('.halaman');
 
@@ -120,7 +145,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             button.classList.add('active');
             const idTarget = button.id.replace('nav-', 'halaman-');
-            document.getElementById(idTarget).classList.add('active');
+            const targetEl = document.getElementById(idTarget);
+            if (targetEl) targetEl.classList.add('active');
         });
     });
 
@@ -131,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const batalProfil = document.getElementById('batal-profil');
     const formGantiPassword = document.getElementById('form-ganti-password');
     const profilError = document.getElementById('profil-error');
+    const profilInputNama = document.getElementById('profil-input-nama');
     const profilInputUsername = document.getElementById('profil-input-username');
     const inputPwdLama = document.getElementById('pwd-lama');
     const inputPwdBaru = document.getElementById('pwd-baru');
@@ -188,19 +215,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function bukaModalProfilHandler() {
-        const currentUsername = localStorage.getItem('simvenko_user') || 'admin';
-        updateProfilDisplay(currentUsername);
+        updateProfilDisplay();
         hideProfilError();
         if (formGantiPassword) formGantiPassword.reset();
-        if (profilInputUsername) profilInputUsername.value = currentUsername;
+        updateProfilDisplay();
         resetToggleIcon('toggle-pwd-lama', 'pwd-lama');
         resetToggleIcon('toggle-pwd-baru', 'pwd-baru');
         resetToggleIcon('toggle-pwd-konfirmasi', 'pwd-konfirmasi');
         if (modalProfil) {
             modalProfil.style.display = 'flex';
-            if (profilInputUsername) {
-                profilInputUsername.focus();
-                profilInputUsername.select();
+            if (profilInputNama) {
+                profilInputNama.focus();
+                profilInputNama.select();
             }
         }
     }
@@ -239,13 +265,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Real-time update preview username saat mengetik di input
-    if (profilInputUsername) {
-        profilInputUsername.addEventListener('input', (e) => {
+    // Real-time update live preview nama lengkap saat admin mengetik
+    if (profilInputNama) {
+        profilInputNama.addEventListener('input', (e) => {
             const val = e.target.value.trim();
-            const modalProfilUsername = document.getElementById('modal-profil-username');
-            if (modalProfilUsername) {
-                modalProfilUsername.textContent = val || 'admin';
+            const modalProfilDisplayName = document.getElementById('modal-profil-display-name');
+            if (modalProfilDisplayName) {
+                modalProfilDisplayName.textContent = val || 'Administrator';
             }
             hideProfilError();
         });
@@ -261,24 +287,23 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             hideProfilError();
 
-            const usernameLama = localStorage.getItem('simvenko_user') || 'admin';
-            const usernameBaru = profilInputUsername ? profilInputUsername.value.trim() : usernameLama;
+            const namaLengkap = profilInputNama ? profilInputNama.value.trim() : '';
             const passwordLama = inputPwdLama ? inputPwdLama.value.trim() : '';
             const passwordBaru = inputPwdBaru ? inputPwdBaru.value.trim() : '';
             const konfirmasiPassword = inputPwdKonfirmasi ? inputPwdKonfirmasi.value.trim() : '';
 
-            // Validasi username
-            if (!usernameBaru) {
-                if (profilInputUsername) profilInputUsername.classList.add('is-invalid');
-                showProfilError('Username / nama akun tidak boleh kosong!');
-                if (profilInputUsername) profilInputUsername.focus();
+            // Validasi nama lengkap
+            if (!namaLengkap) {
+                if (profilInputNama) profilInputNama.classList.add('is-invalid');
+                showProfilError('Nama lengkap / tampilan tidak boleh kosong!');
+                if (profilInputNama) profilInputNama.focus();
                 return;
             }
 
             // Validasi password saat ini
             if (!passwordLama) {
                 if (inputPwdLama) inputPwdLama.classList.add('is-invalid');
-                showProfilError('Password saat ini (lama) wajib diisi untuk verifikasi!');
+                showProfilError('Password saat ini (lama) wajib diisi untuk verifikasi keamanan!');
                 if (inputPwdLama) inputPwdLama.focus();
                 return;
             }
@@ -323,17 +348,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 const hasil = await updateProfilAdmin({
-                    usernameLama,
-                    usernameBaru,
+                    namaLengkap,
                     passwordLama,
                     passwordBaru,
                     konfirmasiPassword
                 });
 
-                if (hasil.sukses) {
-                    const finalUsername = hasil.username || usernameBaru;
-                    localStorage.setItem('simvenko_user', finalUsername);
-                    updateProfilDisplay(finalUsername);
+                if (hasil.sukses && hasil.user) {
+                    localStorage.setItem('simvenko_user', hasil.user.nama_lengkap);
+                    localStorage.setItem('simvenko_uname', hasil.user.username);
+                    updateProfilDisplay(hasil.user);
                     tutupModalProfilHandler();
                     if (typeof showToast === 'function') {
                         showToast(hasil.message || 'Profil berhasil diperbarui!', 'success');
@@ -344,11 +368,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (inputPwdLama) {
                             inputPwdLama.classList.add('is-invalid');
                             inputPwdLama.focus();
-                        }
-                    } else if (hasil.message && hasil.message.toLowerCase().includes('username')) {
-                        if (profilInputUsername) {
-                            profilInputUsername.classList.add('is-invalid');
-                            profilInputUsername.focus();
                         }
                     }
                 }
@@ -366,10 +385,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 4. TOMBOL LOGOUT ---
     const btnLogout = document.getElementById('btn-logout');
     if (btnLogout) {
-        btnLogout.addEventListener('click', () => {
+        btnLogout.addEventListener('click', async () => {
+            // Hapus sesi di server (clear cookie)
+            if (typeof logoutUser === 'function') {
+                await logoutUser();
+            }
+
             // Hapus status login dari memori browser
             localStorage.removeItem('simvenko_login');
             localStorage.removeItem('simvenko_user');
+            localStorage.removeItem('simvenko_uname');
             
             // Sembunyikan halaman utama dan tampilkan kembali halaman login
             sidebarUtama.style.display = 'none';

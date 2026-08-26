@@ -39,10 +39,11 @@
                     <i class="fa-solid fa-user-shield"></i>
                 </div>
                 <div class="sidebar-user-info">
-                    <span class="sidebar-user-name" id="sidebar-user-name">admin</span>
+                    <span class="sidebar-user-name" id="sidebar-user-name">Administrator</span>
+                    <span class="sidebar-user-uname" id="sidebar-user-uname">@admin</span>
                 </div>
-                <div class="sidebar-user-action" title="Ganti Password">
-                    <i class="fa-solid fa-key"></i>
+                <div class="sidebar-user-action" title="Pengaturan Akun & Keamanan">
+                    <i class="fa-solid fa-gear"></i>
                 </div>
             </div>
 
@@ -879,58 +880,91 @@
                             <i class="fa-solid fa-user-shield"></i>
                         </div>
                         <div class="profil-banner-info">
-                            <h3 id="modal-profil-username">admin</h3>
+                            <h3 id="modal-profil-display-name">Administrator</h3>
+                            <div class="profil-badge-row">
+                                <span class="badge-uname" id="modal-profil-uname-badge"><i class="fa-solid fa-at"></i>
+                                    admin</span>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Form Ganti Password & Edit Profil -->
                     <form id="form-ganti-password" novalidate>
                         <div class="profil-section-title">
-                            <i class="fa-solid fa-user-gear"></i> Informasi Akun Admin
+                            <i class="fa-solid fa-id-card"></i> Identitas Akun
                         </div>
 
                         <div id="profil-error" class="form-error-message"></div>
 
+                        <!-- 1. Nama Lengkap / Tampilan (DAPAT DIUBAH) -->
                         <div class="form-group">
-                            <label for="profil-input-username">
-                                <i class="fa-solid fa-user"></i> Username / Nama Akun <span class="required-star">*</span>
+                            <label for="profil-input-nama">
+                                <i class="fa-solid fa-signature"></i> Nama Lengkap / Tampilan <span
+                                    class="required-star">*</span>
                             </label>
-                            <input type="text" id="profil-input-username" placeholder="Masukkan username admin" required
-                                autocomplete="username">
+                            <input type="text" id="profil-input-nama" placeholder="Contoh: Arasel Thenilo" required
+                                autocomplete="name">
+                            <span class="form-hint"
+                                style="font-size: 11.5px; color: #7f8c8d; margin-top: 4px; display: block;">
+                                <i class="fa-solid fa-circle-info"></i> Nama ini akan tampil di seluruh antarmuka dan
+                                laporan.
+                            </span>
                         </div>
 
+                        <!-- 2. Username Akun (PERMANEN / TERKUNCI DEMI KEAMANAN) -->
+                        <div class="form-group">
+                            <label for="profil-input-username">
+                                <i class="fa-solid fa-user-lock"></i> Username Sistem (Terkunci)
+                            </label>
+                            <div class="input-readonly-wrapper">
+                                <input type="text" id="profil-input-username" readonly disabled class="input-locked">
+                                <i class="fa-solid fa-lock locked-icon"
+                                    title="Username sistem tidak dapat diubah dari antarmuka"></i>
+                            </div>
+                            <span class="form-hint"
+                                style="font-size: 11.5px; color: #95a5a6; margin-top: 4px; display: block;">
+                                <i class="fa-solid fa-shield-halved"></i> Username akun bersifat permanen demi
+                                integritas audit database.
+                            </span>
+                        </div>
+
+                        <div class="profil-section-title" style="margin-top: 18px;">
+                            <i class="fa-solid fa-key"></i> Keamanan & Password
+                        </div>
+
+                        <!-- 3. Password Saat Ini (Lama) untuk Verifikasi -->
                         <div class="form-group">
                             <label for="pwd-lama">
                                 <i class="fa-solid fa-key"></i> Password Saat Ini <span class="required-star">*</span>
                             </label>
                             <div class="input-password-wrapper">
-                                <input type="password" id="pwd-lama" placeholder="Masukkan password saat ini untuk verifikasi" required
+                                <input type="password" id="pwd-lama"
+                                    placeholder="Masukkan password saat ini untuk verifikasi" required
                                     autocomplete="current-password">
                                 <i class="fa-solid fa-eye toggle-input-pwd" id="toggle-pwd-lama"
                                     title="Lihat Password"></i>
                             </div>
                         </div>
 
-                        <div class="profil-section-title" style="margin-top: 18px;">
-                            <i class="fa-solid fa-lock"></i> Ganti Password (Opsional)
-                        </div>
-
+                        <!-- 4. Password Baru (Opsional) -->
                         <div class="form-group">
                             <label for="pwd-baru">
-                                <i class="fa-solid fa-lock"></i> Password Baru
+                                <i class="fa-solid fa-lock"></i> Password Baru (Opsional)
                             </label>
                             <div class="input-password-wrapper">
-                                <input type="password" id="pwd-baru" placeholder="Kosongkan jika tidak ingin ganti password"
-                                    autocomplete="new-password">
+                                <input type="password" id="pwd-baru"
+                                    placeholder="Kosongkan jika tidak ingin ganti password" autocomplete="new-password">
                                 <i class="fa-solid fa-eye toggle-input-pwd" id="toggle-pwd-baru"
                                     title="Lihat Password"></i>
                             </div>
                             <span class="form-hint"
                                 style="font-size: 11.5px; color: #7f8c8d; margin-top: 4px; display: block;">
-                                <i class="fa-solid fa-circle-info"></i> Isi hanya jika ingin mengganti password (minimal 3 karakter).
+                                <i class="fa-solid fa-shield-check"></i> Password disimpan terenkripsi dengan algoritma
+                                Bcrypt (min. 3 karakter).
                             </span>
                         </div>
 
+                        <!-- 5. Konfirmasi Password Baru -->
                         <div class="form-group">
                             <label for="pwd-konfirmasi">
                                 <i class="fa-solid fa-check-double"></i> Konfirmasi Password Baru

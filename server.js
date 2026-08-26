@@ -2,12 +2,54 @@ require('dotenv').config(); // PENTING: Membaca file .env di baris paling atas
 const express = require('express');
 const path = require('path');
 const mysql = require('mysql2/promise');
+const cookieParser = require('cookie-parser');
+const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const app = express();
 const port = 3000;
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ==============================================
+// SISTEM KEAMANAN & AUTENTIKASI COOKIE (HMAC)
+// ==============================================
+const SESSION_SECRET = process.env.SESSION_SECRET || 'simvenko_secret_key_prod_2026_x87b';
+const COOKIE_NAME = 'simvenko_session';
+
+function signToken(username) {
+    const timestamp = Date.now();
+    const payload = `${username}:${timestamp}`;
+    const signature = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
+    return `${payload}:${signature}`;
+}
+
+function verifyToken(token) {
+    if (!token || typeof token !== 'string') return null;
+    const parts = token.split(':');
+    if (parts.length !== 3) return null;
+    const [username, timestampStr, signature] = parts;
+    const timestamp = parseInt(timestampStr, 10);
+    
+    // Masa berlaku sesi: 7 hari
+    if (isNaN(timestamp) || Date.now() - timestamp > 7 * 24 * 60 * 60 * 1000) {
+        return null;
+    }
+
+    const expectedPayload = `${username}:${timestampStr}`;
+    const expectedSignature = crypto.createHmac('sha256', SESSION_SECRET).update(expectedPayload).digest('hex');
+    
+    try {
+        if (crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {
+            return username;
+        }
+    } catch (e) {
+        return null;
+    }
+    return null;
+}
 
 // ==============================================
 // INISIALISASI KONEKSI MYSQL
@@ -41,9 +83,18 @@ let pool;
         await pool.query(`
             CREATE TABLE IF NOT EXISTS admin (
                 username VARCHAR(50) PRIMARY KEY,
-                password VARCHAR(255)
+                nama_lengkap VARCHAR(100) DEFAULT 'Administrator',
+                password VARCHAR(255) NOT NULL
             )
         `);
+
+        // Migrasi kolom nama_lengkap pada tabel admin jika belum ada
+        try {
+            await pool.query("ALTER TABLE admin ADD COLUMN nama_lengkap VARCHAR(100) DEFAULT 'Administrator'");
+        } catch (e) {
+            // Kolom sudah ada
+        }
+
         await pool.query(`
             CREATE TABLE IF NOT EXISTS barang (
                 id_barang VARCHAR(50) PRIMARY KEY,
@@ -118,10 +169,23 @@ let pool;
             // Kolom sudah bernama asal_tujuan
         }
 
-        // Buat akun admin bawaan jika tabel admin masih kosong
+        // Inisialisasi akun admin bawaan dengan bcrypt hash jika belum ada
         const [adminRows] = await pool.query("SELECT * FROM admin WHERE username = 'admin'");
         if (adminRows.length === 0) {
-            await pool.query("INSERT INTO admin (username, password) VALUES ('admin', '123')");
+            const defaultHash = await bcrypt.hash('123', 10);
+            await pool.query("INSERT INTO admin (username, nama_lengkap, password) VALUES ('admin', 'Administrator', ?)", [defaultHash]);
+        }
+
+        // Migrasi otomatis password plaintext ke Bcrypt hash jika masih ada di database
+        const [allAdmins] = await pool.query("SELECT * FROM admin");
+        for (const adm of allAdmins) {
+            if (!adm.password.startsWith('$2a$') && !adm.password.startsWith('$2b$')) {
+                const upgradedHash = await bcrypt.hash(adm.password, 10);
+                await pool.query("UPDATE admin SET password = ? WHERE username = ?", [upgradedHash, adm.username]);
+            }
+            if (!adm.nama_lengkap) {
+                await pool.query("UPDATE admin SET nama_lengkap = 'Administrator' WHERE username = ?", [adm.username]);
+            }
         }
         
         console.log("✅ Database MySQL terhubung dan siap digunakan!");
@@ -134,48 +198,133 @@ let pool;
 // JALUR API (PENGHUBUNG FRONTEND & DATABASE)
 // ==============================================
 
-app.post('/api/login', async (req, res) => {
-    const { username, password } = req.body;
-    const [rows] = await pool.query("SELECT * FROM admin WHERE username = ? AND password = ?", [username, password]);
-    
-    if (rows.length > 0) {
-        res.json({ sukses: true, message: 'Login berhasil!' });
-    } else {
-        res.status(401).json({ sukses: false, message: 'Username atau Password salah!' });
+// Cek status sesi login aktif via Cookie
+app.get('/api/auth/me', async (req, res) => {
+    try {
+        const token = req.cookies[COOKIE_NAME];
+        const username = verifyToken(token);
+
+        if (!username) {
+            return res.json({ loggedIn: false });
+        }
+
+        const [rows] = await pool.query("SELECT username, nama_lengkap FROM admin WHERE username = ?", [username]);
+        if (rows.length === 0) {
+            res.clearCookie(COOKIE_NAME, { httpOnly: true, sameSite: 'lax' });
+            return res.json({ loggedIn: false });
+        }
+
+        res.json({
+            loggedIn: true,
+            user: {
+                username: rows[0].username,
+                nama_lengkap: rows[0].nama_lengkap || rows[0].username
+            }
+        });
+    } catch (error) {
+        console.error("Auth me check error:", error);
+        res.json({ loggedIn: false });
     }
 });
 
-// Endpoint untuk update profil (username) & ganti password admin
-app.post('/api/admin/update-profil', async (req, res) => {
+// Endpoint Login dengan Verifikasi Bcrypt dan HTTP-Only Cookie
+app.post('/api/login', async (req, res) => {
     try {
-        const { usernameLama, usernameBaru, passwordLama, passwordBaru, konfirmasiPassword } = req.body;
-
-        if (!usernameLama || !passwordLama) {
-            return res.status(400).json({ sukses: false, message: 'Username saat ini dan Password saat ini wajib diisi!' });
+        const { username, password } = req.body;
+        if (!username || !password) {
+            return res.status(400).json({ sukses: false, message: 'Username dan Password wajib diisi!' });
         }
 
-        const targetUsername = (usernameBaru && usernameBaru.trim()) ? usernameBaru.trim() : usernameLama.trim();
-        if (!targetUsername) {
-            return res.status(400).json({ sukses: false, message: 'Username tidak boleh kosong!' });
-        }
-
-        // Verifikasi apakah akun admin dan password lama cocok
-        const [rows] = await pool.query("SELECT * FROM admin WHERE username = ? AND password = ?", [usernameLama, passwordLama]);
+        const [rows] = await pool.query("SELECT * FROM admin WHERE username = ?", [username]);
         if (rows.length === 0) {
-            return res.status(400).json({ sukses: false, message: 'Password saat ini (lama) yang Anda masukkan salah!' });
+            return res.status(401).json({ sukses: false, message: 'Username atau Password salah!' });
         }
 
-        // Jika username diubah, cek apakah username baru sudah dipakai oleh akun lain
-        if (targetUsername !== usernameLama) {
-            const [checkUser] = await pool.query("SELECT * FROM admin WHERE username = ?", [targetUsername]);
-            if (checkUser.length > 0) {
-                return res.status(400).json({ sukses: false, message: 'Username baru sudah digunakan!' });
+        const admin = rows[0];
+        let isMatch = false;
+
+        if (admin.password.startsWith('$2a$') || admin.password.startsWith('$2b$')) {
+            isMatch = await bcrypt.compare(password, admin.password);
+        } else {
+            isMatch = (password === admin.password);
+            if (isMatch) {
+                // Auto-upgrade password plaintext ke Bcrypt hash
+                const upgradedHash = await bcrypt.hash(password, 10);
+                await pool.query("UPDATE admin SET password = ? WHERE username = ?", [upgradedHash, admin.username]);
             }
         }
 
-        let finalPassword = passwordLama;
-        const mauGantiPassword = Boolean(passwordBaru && passwordBaru.trim());
+        if (!isMatch) {
+            return res.status(401).json({ sukses: false, message: 'Username atau Password salah!' });
+        }
 
+        // Buat dan sematkan token ke HTTP-Only Cookie
+        const token = signToken(admin.username);
+        res.cookie(COOKIE_NAME, token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 hari
+        });
+
+        res.json({
+            sukses: true,
+            message: 'Login berhasil!',
+            user: {
+                username: admin.username,
+                nama_lengkap: admin.nama_lengkap || admin.username
+            }
+        });
+    } catch (error) {
+        console.error("Login error:", error);
+        res.status(500).json({ sukses: false, message: 'Terjadi kesalahan pada server saat login.' });
+    }
+});
+
+// Endpoint Logout (Menghapus Cookie Sesi)
+app.post('/api/logout', (req, res) => {
+    res.clearCookie(COOKIE_NAME, { httpOnly: true, sameSite: 'lax' });
+    res.json({ sukses: true, message: 'Logout berhasil!' });
+});
+
+// Endpoint untuk update profil (nama lengkap) & ganti password admin (Username permanen/terkunci)
+app.post('/api/admin/update-profil', async (req, res) => {
+    try {
+        const token = req.cookies[COOKIE_NAME];
+        const authUser = verifyToken(token);
+        const { username, namaLengkap, passwordLama, passwordBaru, konfirmasiPassword } = req.body;
+        
+        const targetUsername = authUser || username;
+
+        if (!targetUsername || !passwordLama) {
+            return res.status(400).json({ sukses: false, message: 'Password saat ini wajib diisi untuk verifikasi keamanan!' });
+        }
+
+        const [rows] = await pool.query("SELECT * FROM admin WHERE username = ?", [targetUsername]);
+        if (rows.length === 0) {
+            return res.status(404).json({ sukses: false, message: 'Akun admin tidak ditemukan!' });
+        }
+
+        const admin = rows[0];
+
+        // Verifikasi password saat ini dengan Bcrypt
+        let isMatch = false;
+        if (admin.password.startsWith('$2a$') || admin.password.startsWith('$2b$')) {
+            isMatch = await bcrypt.compare(passwordLama, admin.password);
+        } else {
+            isMatch = (passwordLama === admin.password);
+        }
+
+        if (!isMatch) {
+            return res.status(400).json({ sukses: false, message: 'Password saat ini (lama) yang Anda masukkan salah!' });
+        }
+
+        const finalNamaLengkap = (namaLengkap && namaLengkap.trim()) ? namaLengkap.trim() : (admin.nama_lengkap || admin.username);
+
+        let updateQuery = "UPDATE admin SET nama_lengkap = ? WHERE username = ?";
+        let updateParams = [finalNamaLengkap, targetUsername];
+
+        const mauGantiPassword = Boolean(passwordBaru && passwordBaru.trim());
         if (mauGantiPassword) {
             if (passwordBaru.length < 3) {
                 return res.status(400).json({ sukses: false, message: 'Password baru minimal harus 3 karakter!' });
@@ -186,16 +335,21 @@ app.post('/api/admin/update-profil', async (req, res) => {
             if (passwordLama === passwordBaru) {
                 return res.status(400).json({ sukses: false, message: 'Password baru tidak boleh sama dengan password saat ini!' });
             }
-            finalPassword = passwordBaru;
+
+            const newHashedPassword = await bcrypt.hash(passwordBaru, 10);
+            updateQuery = "UPDATE admin SET nama_lengkap = ?, password = ? WHERE username = ?";
+            updateParams = [finalNamaLengkap, newHashedPassword, targetUsername];
         }
 
-        // Update username dan password di tabel admin
-        await pool.query("UPDATE admin SET username = ?, password = ? WHERE username = ?", [targetUsername, finalPassword, usernameLama]);
+        await pool.query(updateQuery, updateParams);
 
         res.json({
             sukses: true,
-            message: mauGantiPassword ? 'Profil dan password berhasil diperbarui!' : 'Nama profil berhasil diperbarui!',
-            username: targetUsername
+            message: mauGantiPassword ? 'Profil dan password berhasil diperbarui dengan aman!' : 'Nama profil berhasil diperbarui!',
+            user: {
+                username: targetUsername,
+                nama_lengkap: finalNamaLengkap
+            }
         });
     } catch (error) {
         console.error("Gagal mengupdate profil admin:", error);
@@ -206,15 +360,34 @@ app.post('/api/admin/update-profil', async (req, res) => {
 // Endpoint untuk ganti password admin sendiri (kompatibilitas)
 app.post('/api/admin/ganti-password', async (req, res) => {
     try {
-        const { username, usernameLama, usernameBaru, passwordLama, passwordBaru, konfirmasiPassword } = req.body;
-        const uLama = usernameLama || username;
-        const uBaru = usernameBaru || username || usernameLama;
+        const token = req.cookies[COOKIE_NAME];
+        const authUser = verifyToken(token);
+        const { username, namaLengkap, passwordLama, passwordBaru, konfirmasiPassword } = req.body;
+        const targetUsername = authUser || username;
 
-        if (!uLama || !passwordLama) {
-            return res.status(400).json({ sukses: false, message: 'Semua kolom password wajib diisi!' });
+        if (!targetUsername || !passwordLama) {
+            return res.status(400).json({ sukses: false, message: 'Password saat ini wajib diisi!' });
         }
 
-        // Jika hanya ganti password biasa
+        const [rows] = await pool.query("SELECT * FROM admin WHERE username = ?", [targetUsername]);
+        if (rows.length === 0) {
+            return res.status(404).json({ sukses: false, message: 'Akun admin tidak ditemukan!' });
+        }
+
+        const admin = rows[0];
+        let isMatch = false;
+        if (admin.password.startsWith('$2a$') || admin.password.startsWith('$2b$')) {
+            isMatch = await bcrypt.compare(passwordLama, admin.password);
+        } else {
+            isMatch = (passwordLama === admin.password);
+        }
+
+        if (!isMatch) {
+            return res.status(400).json({ sukses: false, message: 'Password saat ini (lama) yang Anda masukkan salah!' });
+        }
+
+        const finalNamaLengkap = (namaLengkap && namaLengkap.trim()) ? namaLengkap.trim() : (admin.nama_lengkap || admin.username);
+
         if (passwordBaru) {
             if (passwordBaru.length < 3) {
                 return res.status(400).json({ sukses: false, message: 'Password baru minimal harus 3 karakter!' });
@@ -225,17 +398,20 @@ app.post('/api/admin/ganti-password', async (req, res) => {
             if (passwordLama === passwordBaru) {
                 return res.status(400).json({ sukses: false, message: 'Password baru tidak boleh sama dengan password lama!' });
             }
+            const newHashed = await bcrypt.hash(passwordBaru, 10);
+            await pool.query("UPDATE admin SET nama_lengkap = ?, password = ? WHERE username = ?", [finalNamaLengkap, newHashed, targetUsername]);
+        } else {
+            await pool.query("UPDATE admin SET nama_lengkap = ? WHERE username = ?", [finalNamaLengkap, targetUsername]);
         }
 
-        const [rows] = await pool.query("SELECT * FROM admin WHERE username = ? AND password = ?", [uLama, passwordLama]);
-        if (rows.length === 0) {
-            return res.status(400).json({ sukses: false, message: 'Password saat ini (lama) yang Anda masukkan salah!' });
-        }
-
-        const targetPass = passwordBaru || passwordLama;
-        await pool.query("UPDATE admin SET username = ?, password = ? WHERE username = ?", [uBaru, targetPass, uLama]);
-
-        res.json({ sukses: true, message: 'Perubahan berhasil disimpan!', username: uBaru });
+        res.json({
+            sukses: true,
+            message: 'Perubahan profil berhasil disimpan!',
+            user: {
+                username: targetUsername,
+                nama_lengkap: finalNamaLengkap
+            }
+        });
     } catch (error) {
         console.error("Gagal mengganti password admin:", error);
         res.status(500).json({ sukses: false, message: 'Terjadi kesalahan pada server.' });
