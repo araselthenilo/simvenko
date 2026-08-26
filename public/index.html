@@ -80,7 +80,8 @@
                         Kelola Kategori</button>
                     <!-- Tombol & Dropdown Menu Expor Data Barang -->
                     <div class="export-dropdown-wrapper">
-                        <button type="button" id="btn-export-dropdown" class="btn-primary btn-export" title="Expor Data Barang">
+                        <button type="button" id="btn-export-dropdown" class="btn-primary btn-export"
+                            title="Expor Data Barang">
                             <i class="fa-solid fa-file-export"></i>
                             <span>Expor Data</span>
                             <i class="fa-solid fa-chevron-down export-chevron-icon" id="chevron-export-icon"></i>
@@ -221,18 +222,130 @@
                     <i class="fa-solid fa-magnifying-glass search-icon"></i>
                     <input type="text" id="input-pencarian-riwayat" placeholder="Cari riwayat transaksi...">
                 </div>
-                <button id="btn-tambah-transaksi" class="btn-primary" style="background-color: #9b59b6;"><i
-                        class="fa-solid fa-plus"></i> Catat Transaksi Baru</button>
+                <button type="button" id="btn-toggle-filter-riwayat" class="btn-filter-toggle">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Advanced Filtering</span>
+                    <span id="badge-filter-riwayat-count" class="badge-filter-count" style="display: none;">0</span>
+                    <i class="fa-solid fa-chevron-down toggle-icon" id="chevron-filter-riwayat-icon"></i>
+                </button>
+                <div class="toolbar-actions">
+                    <button id="btn-tambah-transaksi" class="btn-primary" style="background-color: #9b59b6;"><i
+                            class="fa-solid fa-plus"></i> Catat Transaksi Baru</button>
+                    <!-- Tombol & Dropdown Menu Expor Data Riwayat -->
+                    <div class="export-dropdown-wrapper">
+                        <button type="button" id="btn-export-riwayat-dropdown" class="btn-primary btn-export"
+                            title="Expor Data Riwayat Transaksi">
+                            <i class="fa-solid fa-file-export"></i>
+                            <span>Expor Data</span>
+                            <i class="fa-solid fa-chevron-down export-chevron-icon" id="chevron-export-riwayat-icon"></i>
+                        </button>
+                        <div id="export-menu-riwayat-dropdown" class="export-menu-dropdown" style="display: none;">
+                            <div class="export-menu-header">
+                                <i class="fa-solid fa-download"></i>
+                                <span>Pilih Format Expor</span>
+                            </div>
+                            <button type="button" class="export-menu-item" id="btn-export-riwayat-pdf">
+                                <div class="export-item-icon export-icon-pdf">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                </div>
+                                <div class="export-item-info">
+                                    <strong>Dokumen PDF (.pdf)</strong>
+                                    <span>Tabel rapi & siap cetak</span>
+                                </div>
+                            </button>
+                            <button type="button" class="export-menu-item" id="btn-export-riwayat-csv">
+                                <div class="export-item-icon export-icon-csv">
+                                    <i class="fa-solid fa-file-csv"></i>
+                                </div>
+                                <div class="export-item-info">
+                                    <strong>File CSV (.csv)</strong>
+                                    <span>Format spreadsheet / Excel</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Segmen / Panel Advanced Filtering Riwayat -->
+            <div id="panel-advanced-filter-riwayat" class="advanced-filter-panel" style="display: none;">
+                <div class="advanced-filter-header">
+                    <div class="filter-header-title">
+                        <i class="fa-solid fa-filter" style="color: #9b59b6;"></i>
+                        <span>Advanced Filtering Riwayat</span>
+                    </div>
+                    <button type="button" id="btn-reset-filter-riwayat" class="btn-reset-filter"
+                        title="Reset Semua Filter">
+                        <i class="fa-solid fa-rotate-left"></i> Reset Filter
+                    </button>
+                </div>
+
+                <div class="advanced-filter-body">
+                    <!-- Filter 1: Jenis Transaksi (Pills) -->
+                    <div class="filter-field-group">
+                        <label class="filter-field-label">
+                            <i class="fa-solid fa-arrow-right-arrow-left"></i> Jenis Transaksi
+                        </label>
+                        <div class="filter-pills" id="filter-jenis-riwayat">
+                            <button type="button" class="filter-pill active" data-filter="semua">Semua (<span
+                                    id="count-riwayat-semua">0</span>)</button>
+                            <button type="button" class="filter-pill" data-filter="masuk">Masuk (<span
+                                    id="count-riwayat-masuk">0</span>)</button>
+                            <button type="button" class="filter-pill" data-filter="keluar">Keluar (<span
+                                    id="count-riwayat-keluar">0</span>)</button>
+                        </div>
+                    </div>
+
+                    <!-- Filter 2: Pilihan Barang -->
+                    <div class="filter-field-group">
+                        <label class="filter-field-label" for="filter-riwayat-barang">
+                            <i class="fa-solid fa-box-archive"></i> Barang
+                        </label>
+                        <select id="filter-riwayat-barang" class="filter-control-select">
+                            <option value="semua">Semua Barang</option>
+                            <!-- Opsi barang disuntikkan dinamis -->
+                        </select>
+                    </div>
+
+                    <!-- Filter 3: Rentang Tanggal -->
+                    <div class="filter-field-group">
+                        <label class="filter-field-label">
+                            <i class="fa-solid fa-calendar-days"></i> Rentang Tanggal
+                        </label>
+                        <div class="filter-range-inputs">
+                            <input type="date" id="filter-riwayat-tgl-mulai" class="filter-control-input"
+                                title="Tanggal Mulai">
+                            <span class="range-dash">–</span>
+                            <input type="date" id="filter-riwayat-tgl-akhir" class="filter-control-input"
+                                title="Tanggal Akhir">
+                        </div>
+                    </div>
+
+                    <!-- Filter 4: Rentang Jumlah / Kuantitas -->
+                    <div class="filter-field-group">
+                        <label class="filter-field-label">
+                            <i class="fa-solid fa-calculator"></i> Rentang Jumlah
+                        </label>
+                        <div class="filter-range-inputs">
+                            <input type="number" id="filter-riwayat-jumlah-min" placeholder="Min Qty" min="1"
+                                class="filter-control-input">
+                            <span class="range-dash">–</span>
+                            <input type="number" id="filter-riwayat-jumlah-max" placeholder="Max Qty" min="1"
+                                class="filter-control-input">
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <table class="tabel-data">
                 <thead>
                     <tr>
+                        <th>Kode Transaksi</th>
                         <th>Tanggal</th>
                         <th>Jenis</th>
                         <th>Barang</th>
                         <th>Jumlah</th>
-                        <th>Keterangan</th>
+                        <th>Asal/Tujuan</th>
                         <th>Petugas</th>
                     </tr>
                 </thead>
@@ -282,7 +395,18 @@
                             <input type="hidden" id="trx-jenis" value="masuk">
                         </div>
 
-                        <!-- 2. Langkah Kedua: Pilih Barang -->
+                        <!-- 2. Langkah Kedua: Tanggal Transaksi (Manual / Default Hari Ini) -->
+                        <div class="form-group">
+                            <label for="trx-tanggal">
+                                <i class="fa-solid fa-calendar-days"></i> Tanggal Transaksi <span
+                                    class="required-star">*</span>
+                            </label>
+                            <input type="date" id="trx-tanggal" required>
+                            <span class="form-hint">Default terisi tanggal hari ini. Ubah jika ingin mencatat transaksi
+                                tanggal khusus.</span>
+                        </div>
+
+                        <!-- 3. Langkah Ketiga: Pilih Barang -->
                         <div class="form-group">
                             <label for="trx-barang">
                                 <i class="fa-solid fa-box-archive"></i> Pilih Barang <span
@@ -294,7 +418,7 @@
                             </select>
                         </div>
 
-                        <!-- 3. Langkah Ketiga: Jumlah & Info Stok -->
+                        <!-- 4. Langkah Keempat: Jumlah & Info Stok -->
                         <div class="form-group">
                             <label for="trx-jumlah">
                                 <i class="fa-solid fa-calculator"></i> Jumlah Barang <span
@@ -307,7 +431,7 @@
                             </div>
                         </div>
 
-                        <!-- 4. Langkah Keempat: Keterangan (Dinamis: Supplier vs Pembeli) -->
+                        <!-- 5. Langkah Kelima: Keterangan (Dinamis: Supplier vs Pembeli) -->
                         <div class="form-group">
                             <label for="trx-keterangan" id="label-trx-keterangan">
                                 <i class="fa-solid fa-truck-field" id="icon-trx-keterangan"></i> <span

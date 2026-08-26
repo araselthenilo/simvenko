@@ -106,10 +106,17 @@ let pool;
                 jenis VARCHAR(50),
                 id_barang VARCHAR(50),
                 jumlah INT,
-                keterangan TEXT,
+                asal_tujuan TEXT,
                 petugas VARCHAR(100)
             )
         `);
+
+        // Migrasi kolom keterangan menjadi asal_tujuan jika tabel riwayat sudah ada sebelumnya
+        try {
+            await pool.query("ALTER TABLE riwayat CHANGE COLUMN keterangan asal_tujuan TEXT");
+        } catch (e) {
+            // Kolom sudah bernama asal_tujuan
+        }
 
         // Buat akun admin bawaan jika tabel admin masih kosong
         const [adminRows] = await pool.query("SELECT * FROM admin WHERE username = 'admin'");
@@ -338,13 +345,29 @@ app.put('/api/kategori/:id/aktifkan', async (req, res) => {
 
 app.post('/api/barang', async (req, res) => {
     const b = req.body;
+    const idBarang = (b.id_barang || '').trim();
+    const namaBarang = (b.nama || '').trim();
+
+    if (!idBarang || !namaBarang) {
+        return res.status(400).json({ error: 'Kode Barang dan Nama Barang wajib diisi!' });
+    }
+
     try {
-        const [existing] = await pool.query("SELECT is_deleted FROM barang WHERE id_barang = ?", [b.id_barang]);
+        // Cek apakah Nama Barang sudah digunakan oleh barang aktif lain (case-insensitive)
+        const [existingName] = await pool.query(
+            "SELECT id_barang, nama, is_deleted FROM barang WHERE LOWER(TRIM(nama)) = LOWER(?) AND id_barang != ?",
+            [namaBarang, idBarang]
+        );
+        if (existingName.length > 0 && !existingName[0].is_deleted) {
+            return res.status(400).json({ error: `Nama Barang "${namaBarang}" sudah digunakan oleh barang lain (${existingName[0].id_barang})!` });
+        }
+
+        const [existing] = await pool.query("SELECT is_deleted FROM barang WHERE id_barang = ?", [idBarang]);
         if (existing.length > 0) {
             if (existing[0].is_deleted) {
                 await pool.query(
                     "UPDATE barang SET nama = ?, kategori = ?, harga = ?, satuan = ?, stok = ?, batas_minimum = ?, is_deleted = 0 WHERE id_barang = ?",
-                    [b.nama, b.kategori, b.harga, b.satuan, b.stok, b.batas_minimum, b.id_barang]
+                    [namaBarang, b.kategori, b.harga, b.satuan, b.stok, b.batas_minimum, idBarang]
                 );
                 return res.json({ message: 'Barang berhasil ditambahkan kembali!' });
             } else {
@@ -354,28 +377,44 @@ app.post('/api/barang', async (req, res) => {
 
         await pool.query(
             "INSERT INTO barang (id_barang, nama, kategori, harga, satuan, stok, batas_minimum, is_deleted) VALUES (?, ?, ?, ?, ?, ?, ?, 0)",
-            [b.id_barang, b.nama, b.kategori, b.harga, b.satuan, b.stok, b.batas_minimum]
+            [idBarang, namaBarang, b.kategori, b.harga, b.satuan, b.stok, b.batas_minimum]
         );
         res.json({ message: 'Barang berhasil ditambahkan!' });
     } catch (error) {
-        res.status(500).json({ error: 'Gagal! Pastikan Kode Barang tidak duplikat.' });
+        res.status(500).json({ error: 'Gagal! Pastikan Kode Barang dan Nama Barang tidak duplikat.' });
     }
 });
 
 app.put('/api/barang/:id', async (req, res) => {
     const idLama = req.params.id;
     const b = req.body;
+    const idBarang = (b.id_barang || '').trim();
+    const namaBarang = (b.nama || '').trim();
+
+    if (!idBarang || !namaBarang) {
+        return res.status(400).json({ error: 'Kode Barang dan Nama Barang wajib diisi!' });
+    }
+
     try {
-        if (b.id_barang !== idLama) {
-            const [exist] = await pool.query("SELECT id_barang FROM barang WHERE id_barang = ? AND id_barang != ?", [b.id_barang, idLama]);
+        if (idBarang !== idLama) {
+            const [exist] = await pool.query("SELECT id_barang FROM barang WHERE id_barang = ? AND id_barang != ?", [idBarang, idLama]);
             if (exist.length > 0) {
                 return res.status(400).json({ error: 'Kode Barang baru sudah digunakan!' });
             }
         }
 
+        // Cek apakah Nama Barang sudah digunakan oleh barang aktif lain (case-insensitive)
+        const [existingName] = await pool.query(
+            "SELECT id_barang, nama, is_deleted FROM barang WHERE LOWER(TRIM(nama)) = LOWER(?) AND id_barang != ? AND is_deleted = 0",
+            [namaBarang, idLama]
+        );
+        if (existingName.length > 0) {
+            return res.status(400).json({ error: `Nama Barang "${namaBarang}" sudah digunakan oleh barang lain (${existingName[0].id_barang})!` });
+        }
+
         await pool.query(
             "UPDATE barang SET id_barang = ?, nama = ?, kategori = ?, harga = ?, satuan = ?, stok = ?, batas_minimum = ? WHERE id_barang = ?",
-            [b.id_barang, b.nama, b.kategori, b.harga, b.satuan, b.stok, b.batas_minimum, idLama]
+            [idBarang, namaBarang, b.kategori, b.harga, b.satuan, b.stok, b.batas_minimum, idLama]
         );
         res.json({ message: 'Barang berhasil diubah!' });
     } catch (error) {
@@ -404,11 +443,16 @@ app.put('/api/barang/:id/aktifkan', async (req, res) => {
 app.post('/api/transaksi', async (req, res) => {
     const trx = req.body;
     const id_transaksi = 'TRX-' + Date.now();
-    const d = new Date();
-    const tahun = d.getFullYear();
-    const bulan = String(d.getMonth() + 1).padStart(2, '0');
-    const hari = String(d.getDate()).padStart(2, '0');
-    const tanggal = `${tahun}-${bulan}-${hari}`;
+    
+    // Gunakan tanggal yang dikirimkan admin jika valid (format YYYY-MM-DD), jika tidak gunakan tanggal hari ini
+    let tanggal = trx.tanggal;
+    if (!tanggal || !/^\d{4}-\d{2}-\d{2}$/.test(tanggal)) {
+        const d = new Date();
+        const tahun = d.getFullYear();
+        const bulan = String(d.getMonth() + 1).padStart(2, '0');
+        const hari = String(d.getDate()).padStart(2, '0');
+        tanggal = `${tahun}-${bulan}-${hari}`;
+    }
     const petugas = "Admin";
     
     const connection = await pool.getConnection();
@@ -433,10 +477,11 @@ app.post('/api/transaksi', async (req, res) => {
             }
         }
 
+        const asal_tujuan = trx.asal_tujuan || trx.keterangan || '';
         await connection.query("UPDATE barang SET stok = ? WHERE id_barang = ?", [stokBaru, trx.id_barang]);
         await connection.query(
-            "INSERT INTO riwayat (id_transaksi, tanggal, jenis, id_barang, jumlah, keterangan, petugas) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [id_transaksi, tanggal, trx.jenis, trx.id_barang, qty, trx.keterangan, petugas]
+            "INSERT INTO riwayat (id_transaksi, tanggal, jenis, id_barang, jumlah, asal_tujuan, petugas) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [id_transaksi, tanggal, trx.jenis, trx.id_barang, qty, asal_tujuan, petugas]
         );
 
         await connection.commit();

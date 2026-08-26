@@ -614,6 +614,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Validasi Keunikan Nama Barang
+        const namaSudahAda = (globalDataBarang || []).some(b => !b.is_deleted && b.nama.trim().toLowerCase() === nama.toLowerCase() && b.id_barang !== kode);
+        if (namaSudahAda) {
+            document.getElementById('input-nama').classList.add('is-invalid');
+            showFormError('tambah-error', `Nama Barang "${nama}" sudah terdaftar! Nama barang wajib unik.`);
+            return;
+        }
+
         const barangBaru = {
             id_barang: kode,
             nama: nama,
@@ -682,6 +690,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (stok < 0) document.getElementById('edit-stok').classList.add('is-invalid');
             if (batas < 0) document.getElementById('edit-batas').classList.add('is-invalid');
             showFormError('edit-error', 'Harga, stok, dan batas minimum tidak boleh bernilai negatif!');
+            return;
+        }
+
+        // Validasi Keunikan Nama Barang pada Barang Lain
+        const namaSudahAda = (globalDataBarang || []).some(b => !b.is_deleted && b.id_barang !== idLama && b.id_barang !== kode && b.nama.trim().toLowerCase() === nama.toLowerCase());
+        if (namaSudahAda) {
+            document.getElementById('edit-nama').classList.add('is-invalid');
+            showFormError('edit-error', `Nama Barang "${nama}" sudah terdaftar pada barang lain! Nama barang wajib unik.`);
             return;
         }
 
