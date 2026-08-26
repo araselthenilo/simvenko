@@ -58,8 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasil = await response.json();
 
             if (hasil.sukses) {
-                // Jika sukses, simpan status login di browser dan buka aplikasi
+                // Jika sukses, simpan status login & username di browser dan buka aplikasi
                 localStorage.setItem('simvenko_login', 'true');
+                localStorage.setItem('simvenko_user', usernameVal || 'Admin');
                 tampilkanHalamanUtama();
             } else {
                 showLoginError(hasil.message || 'Username atau password salah!');
@@ -112,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnLogout.addEventListener('click', () => {
             // Hapus status login dari memori browser
             localStorage.removeItem('simvenko_login');
+            localStorage.removeItem('simvenko_user');
             
             // Sembunyikan halaman utama dan tampilkan kembali halaman login
             sidebarUtama.style.display = 'none';

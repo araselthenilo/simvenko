@@ -321,11 +321,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === modalEdit) tutupModalEdit();
         if (e.target === modalHapus) tutupModalHapus();
         if (e.target === modalKategori) tutupModalKategoriHandler();
+
+        // Tutup menu dropdown expor jika klik di luar dropdown wrapper
+        if (!e.target.closest('.export-dropdown-wrapper')) {
+            tutupExportMenu();
+        }
     });
 
     // Tutup modal dengan tombol keyboard Escape
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
+            tutupExportMenu();
             if (modalEditKategori && modalEditKategori.style.display === 'flex') {
                 tutupModalEditKategori();
                 return;
@@ -836,6 +842,43 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTabelBarang();
     });
 
+    // --- FITUR DROPDOWN & AKSI EXPOR DATA BARANG (PDF / CSV) ---
+    const btnExportDropdown = document.getElementById('btn-export-dropdown');
+    const menuExportDropdown = document.getElementById('export-menu-dropdown');
+    const chevronExportIcon = document.getElementById('chevron-export-icon');
+    const btnExportPdf = document.getElementById('btn-export-pdf');
+    const btnExportCsv = document.getElementById('btn-export-csv');
+
+    function tutupExportMenu() {
+        if (menuExportDropdown) menuExportDropdown.style.display = 'none';
+        if (chevronExportIcon) chevronExportIcon.style.transform = 'rotate(0deg)';
+    }
+
+    if (btnExportDropdown && menuExportDropdown) {
+        btnExportDropdown.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isHidden = menuExportDropdown.style.display === 'none' || menuExportDropdown.style.display === '';
+            menuExportDropdown.style.display = isHidden ? 'block' : 'none';
+            if (chevronExportIcon) {
+                chevronExportIcon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+            }
+        });
+    }
+
+    if (btnExportPdf) {
+        btnExportPdf.addEventListener('click', () => {
+            tutupExportMenu();
+            exportDataBarangPDF();
+        });
+    }
+
+    if (btnExportCsv) {
+        btnExportCsv.addEventListener('click', () => {
+            tutupExportMenu();
+            exportDataBarangCSV();
+        });
+    }
+
     // --- FITUR KLIK TOMBOL EDIT, NONAKTIFKAN, DAN AKTIFKAN PADA TABEL BARANG ---
     document.getElementById('tabel-barang-body').addEventListener('click', async (e) => {
         const btn = e.target.closest('button');
@@ -1096,32 +1139,9 @@ function updateDashboard(barang) {
     document.getElementById('dash-habis').innerText = stokHabis;
 }
 
-function renderTabelBarang() {
-    const tbody = document.getElementById('tabel-barang-body');
-    if (!tbody) return;
-
-    tbody.innerHTML = '';
+// Fungsi untuk mengambil data barang yang sudah tersaring oleh pencarian & advanced filtering
+function getFilteredDataBarang() {
     const allItems = globalDataBarang || [];
-
-    // Hitung statistik untuk filter pills
-    const totalAll = allItems.length;
-    const totalAktif = allItems.filter(i => !i.is_deleted).length;
-    const totalNonaktif = allItems.filter(i => i.is_deleted).length;
-
-    const countSemua = document.getElementById('count-barang-semua');
-    const countAktif = document.getElementById('count-barang-aktif');
-    const countNonaktif = document.getElementById('count-barang-nonaktif');
-
-    if (countSemua) countSemua.textContent = totalAll;
-    if (countAktif) countAktif.textContent = totalAktif;
-    if (countNonaktif) countNonaktif.textContent = totalNonaktif;
-
-    updateActiveFilterBadge();
-
-    if (allItems.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #888; padding: 20px;">Belum ada data barang. Silakan tambahkan barang baru.</td></tr>`;
-        return;
-    }
 
     // 1. Filter status keaktifan (semua / aktif / nonaktif)
     let filteredList = allItems;
@@ -1191,6 +1211,38 @@ function renderTabelBarang() {
         });
     }
 
+    return filteredList;
+}
+
+function renderTabelBarang() {
+    const tbody = document.getElementById('tabel-barang-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    const allItems = globalDataBarang || [];
+
+    // Hitung statistik untuk filter pills
+    const totalAll = allItems.length;
+    const totalAktif = allItems.filter(i => !i.is_deleted).length;
+    const totalNonaktif = allItems.filter(i => i.is_deleted).length;
+
+    const countSemua = document.getElementById('count-barang-semua');
+    const countAktif = document.getElementById('count-barang-aktif');
+    const countNonaktif = document.getElementById('count-barang-nonaktif');
+
+    if (countSemua) countSemua.textContent = totalAll;
+    if (countAktif) countAktif.textContent = totalAktif;
+    if (countNonaktif) countNonaktif.textContent = totalNonaktif;
+
+    updateActiveFilterBadge();
+
+    if (allItems.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #888; padding: 20px;">Belum ada data barang. Silakan tambahkan barang baru.</td></tr>`;
+        return;
+    }
+
+    const filteredList = getFilteredDataBarang();
+
     if (filteredList.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #888; padding: 20px;">Tidak ditemukan data barang yang sesuai dengan filter/pencarian.</td></tr>`;
         return;
@@ -1256,4 +1308,348 @@ function renderTabelBarang() {
         `;
         tbody.appendChild(tr);
     });
+}
+
+// --- FUNGSI MENDAPATKAN USER LOGIN & RINGKASAN FILTER AKTIF ---
+function getExportAdminUser() {
+    return localStorage.getItem('simvenko_user') || 'Admin';
+}
+
+function getActiveFiltersSummary() {
+    const filters = [];
+
+    // 1. Status Keaktifan
+    if (globalFilterBarang === 'aktif') {
+        filters.push('Status: Aktif');
+    } else if (globalFilterBarang === 'nonaktif') {
+        filters.push('Status: Nonaktif');
+    }
+
+    // 2. Kategori
+    const selectKategori = document.getElementById('filter-kategori-barang');
+    const valKategori = selectKategori ? selectKategori.value : 'semua';
+    if (valKategori && valKategori !== 'semua') {
+        filters.push(`Kategori: ${valKategori}`);
+    }
+
+    // 3. Kondisi Stok
+    const selectKondisi = document.getElementById('filter-kondisi-stok');
+    const valKondisi = selectKondisi ? selectKondisi.value : 'semua';
+    if (valKondisi === 'aman') {
+        filters.push('Kondisi: Stok Aman');
+    } else if (valKondisi === 'menipis') {
+        filters.push('Kondisi: Stok Menipis');
+    } else if (valKondisi === 'habis') {
+        filters.push('Kondisi: Stok Habis');
+    }
+
+    // 4. Rentang Stok
+    const valStokMin = document.getElementById('filter-stok-min')?.value.trim();
+    const valStokMax = document.getElementById('filter-stok-max')?.value.trim();
+    if (valStokMin !== '' && valStokMin !== undefined && valStokMax !== '' && valStokMax !== undefined) {
+        filters.push(`Stok: ${valStokMin} s/d ${valStokMax}`);
+    } else if (valStokMin !== '' && valStokMin !== undefined) {
+        filters.push(`Stok Min: ${valStokMin}`);
+    } else if (valStokMax !== '' && valStokMax !== undefined) {
+        filters.push(`Stok Max: ${valStokMax}`);
+    }
+
+    // 5. Rentang Harga
+    const valHargaMin = document.getElementById('filter-harga-min')?.value.trim();
+    const valHargaMax = document.getElementById('filter-harga-max')?.value.trim();
+    if (valHargaMin !== '' && valHargaMin !== undefined && valHargaMax !== '' && valHargaMax !== undefined) {
+        filters.push(`Harga: Rp ${Number(valHargaMin).toLocaleString('id-ID')} s/d Rp ${Number(valHargaMax).toLocaleString('id-ID')}`);
+    } else if (valHargaMin !== '' && valHargaMin !== undefined) {
+        filters.push(`Harga Min: Rp ${Number(valHargaMin).toLocaleString('id-ID')}`);
+    } else if (valHargaMax !== '' && valHargaMax !== undefined) {
+        filters.push(`Harga Max: Rp ${Number(valHargaMax).toLocaleString('id-ID')}`);
+    }
+
+    // 6. Pencarian
+    const inputSearch = document.getElementById('input-pencarian');
+    const kataKunci = inputSearch ? inputSearch.value.trim() : '';
+    if (kataKunci) {
+        filters.push(`Pencarian: "${kataKunci}"`);
+    }
+
+    return filters;
+}
+
+// --- FUNGSI EKSPOR DATA KE PDF (jsPDF + autoTable) ---
+function exportDataBarangPDF() {
+    const data = getFilteredDataBarang();
+    if (!data || data.length === 0) {
+        showToast('Tidak ada data barang untuk diekspor ke PDF.', 'warning');
+        return;
+    }
+
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+        showToast('Library PDF belum termuat, mohon periksa koneksi internet Anda.', 'error');
+        return;
+    }
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        const sekarang = new Date();
+        const tglStr = sekarang.toLocaleDateString('id-ID', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+        const waktuStr = sekarang.toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        const adminUser = getExportAdminUser();
+        const activeFilters = getActiveFiltersSummary();
+        const filterStr = activeFilters.length > 0 ? activeFilters.join(' | ') : 'Semua Data (Tanpa Filter)';
+
+        // Header Dokumen
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(15);
+        doc.setTextColor(30, 41, 59); // Slate 800
+        doc.text('SIMVENKO - SISTEM MANAJEMEN INVENTARIS', 14, 15);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9.5);
+        doc.setTextColor(100, 116, 139); // Slate 500
+        doc.text('Laporan Ringkasan dan Status Data Barang', 14, 21);
+
+        // Garis Pembatas
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.5);
+        doc.line(14, 24, 196, 24);
+
+        // Metadata Laporan dalam 2 Kolom
+        doc.setFontSize(8.5);
+        doc.setTextColor(71, 85, 105);
+        
+        // Kolom Kiri
+        doc.text(`Tanggal Cetak : ${tglStr}, ${waktuStr} WIB`, 14, 30);
+        doc.text(`Total Data       : ${data.length} barang`, 14, 35);
+
+        // Kolom Kanan
+        doc.text(`Nama Admin    : ${adminUser}`, 115, 30);
+
+        // Baris Filter Diterapkan
+        const filterLabel = 'Filter Terpakai : ';
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(71, 85, 105);
+        doc.text(filterLabel, 14, 40);
+
+        const filterLabelWidth = doc.getTextWidth(filterLabel);
+        const filterStartX = 14 + filterLabelWidth;
+        const availableWidth = 196 - filterStartX;
+        
+        doc.setFont('helvetica', activeFilters.length > 0 ? 'bold' : 'italic');
+        if (activeFilters.length > 0) {
+            doc.setTextColor(37, 99, 235); // Blue 600
+        } else {
+            doc.setTextColor(100, 116, 139);
+        }
+
+        const filterLines = doc.splitTextToSize(filterStr, availableWidth);
+        doc.text(filterLines, filterStartX, 40);
+
+        const startYTable = 42 + (filterLines.length * 4);
+
+        // Format data tabel untuk autoTable
+        const tableColumns = [
+            { header: 'No', dataKey: 'no' },
+            { header: 'Kode', dataKey: 'kode' },
+            { header: 'Nama Barang', dataKey: 'nama' },
+            { header: 'Kategori', dataKey: 'kategori' },
+            { header: 'Harga Satuan', dataKey: 'harga' },
+            { header: 'Stok', dataKey: 'stok' },
+            { header: 'Min', dataKey: 'batas' },
+            { header: 'Status', dataKey: 'status' }
+        ];
+
+        const tableRows = data.map((item, index) => {
+            const isDeleted = Boolean(item.is_deleted);
+            let statusText = isDeleted ? 'Nonaktif' : 'Aktif';
+            if (!isDeleted && item.stok === 0) statusText = 'Habis';
+            else if (!isDeleted && item.stok <= item.batas_minimum) statusText = 'Menipis';
+
+            return {
+                no: (index + 1).toString(),
+                kode: item.id_barang || '-',
+                nama: item.nama || '-',
+                kategori: item.kategori || '-',
+                harga: `Rp ${Number(item.harga || 0).toLocaleString('id-ID')}`,
+                stok: `${item.stok} ${item.satuan || ''}`,
+                batas: `${item.batas_minimum || 0}`,
+                status: statusText
+            };
+        });
+
+        doc.autoTable({
+            columns: tableColumns,
+            body: tableRows,
+            startY: startYTable,
+            theme: 'striped',
+            styles: {
+                font: 'helvetica',
+                fontSize: 8.5,
+                cellPadding: 2.5,
+                valign: 'middle',
+                textColor: [30, 41, 59],
+                overflow: 'linebreak'
+            },
+            headStyles: {
+                fillColor: [39, 174, 96], // #27ae60 SIMVENKO Green
+                textColor: [255, 255, 255],
+                fontStyle: 'bold',
+                fontSize: 9
+            },
+            alternateRowStyles: {
+                fillColor: [248, 250, 252] // Slate 50
+            },
+            columnStyles: {
+                no: { halign: 'center', cellWidth: 10 },
+                kode: { fontStyle: 'bold', cellWidth: 22 },
+                nama: { cellWidth: 48 },
+                kategori: { cellWidth: 26 },
+                harga: { halign: 'right', cellWidth: 28 },
+                stok: { halign: 'right', cellWidth: 20 },
+                batas: { halign: 'center', cellWidth: 12 },
+                status: { halign: 'center', cellWidth: 16 }
+            },
+            didParseCell: function(dataCell) {
+                if (dataCell.section === 'body' && dataCell.column.dataKey === 'status') {
+                    if (dataCell.cell.raw === 'Nonaktif') {
+                        dataCell.cell.styles.textColor = [148, 163, 184];
+                    } else if (dataCell.cell.raw === 'Habis') {
+                        dataCell.cell.styles.textColor = [220, 38, 38];
+                        dataCell.cell.styles.fontStyle = 'bold';
+                    } else if (dataCell.cell.raw === 'Menipis') {
+                        dataCell.cell.styles.textColor = [217, 119, 6];
+                        dataCell.cell.styles.fontStyle = 'bold';
+                    } else {
+                        dataCell.cell.styles.textColor = [22, 163, 74];
+                    }
+                }
+            },
+            didDrawPage: function () {
+                const str = `Halaman ${doc.internal.getNumberOfPages()}`;
+                doc.setFontSize(8);
+                doc.setTextColor(148, 163, 184);
+                doc.text(
+                    str,
+                    doc.internal.pageSize.width - 20,
+                    doc.internal.pageSize.height - 10,
+                    { align: 'right' }
+                );
+                doc.text(
+                    `SIMVENKO - Nama Admin: ${adminUser}`,
+                    14,
+                    doc.internal.pageSize.height - 10
+                );
+            }
+        });
+
+        const padZero = (n) => String(n).padStart(2, '0');
+        const fileDateStr = `${sekarang.getFullYear()}${padZero(sekarang.getMonth() + 1)}${padZero(sekarang.getDate())}_${padZero(sekarang.getHours())}${padZero(sekarang.getMinutes())}`;
+        const fileName = `laporan_data_barang_${fileDateStr}.pdf`;
+
+        doc.save(fileName);
+        showToast(`Berhasil mengekspor ${data.length} barang ke format PDF!`, 'success');
+    } catch (err) {
+        console.error('Gagal mengekspor PDF:', err);
+        showToast('Terjadi kesalahan saat memproses ekspor PDF.', 'error');
+    }
+}
+
+// --- FUNGSI EKSPOR DATA KE CSV ---
+function exportDataBarangCSV() {
+    const data = getFilteredDataBarang();
+    if (!data || data.length === 0) {
+        showToast('Tidak ada data barang untuk diekspor ke CSV.', 'warning');
+        return;
+    }
+
+    try {
+        const sekarang = new Date();
+        const tglStr = sekarang.toLocaleDateString('id-ID', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+        const waktuStr = sekarang.toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        const adminUser = getExportAdminUser();
+        const activeFilters = getActiveFiltersSummary();
+        const filterStr = activeFilters.length > 0 ? activeFilters.join(' | ') : 'Semua Data (Tanpa Filter)';
+
+        const metaRows = [
+            ['"SIMVENKO - LAPORAN DATA BARANG"'],
+            [`"Tanggal Ekspor"`, `"${tglStr} ${waktuStr} WIB"`],
+            [`"Nama Admin"`, `"${adminUser}"`],
+            [`"Filter Diterapkan"`, `"${filterStr.replace(/"/g, '""')}"`],
+            [`"Total Data"`, `"${data.length} barang"`],
+            [] // Baris pemisah kosong
+        ];
+
+        const headers = [
+            'No',
+            'Kode Barang',
+            'Nama Barang',
+            'Kategori',
+            'Harga Satuan (Rp)',
+            'Stok',
+            'Satuan',
+            'Batas Minimum',
+            'Status Keaktifan'
+        ];
+
+        const rows = data.map((item, index) => {
+            const no = index + 1;
+            const kode = `"${String(item.id_barang || '').replace(/"/g, '""')}"`;
+            const nama = `"${String(item.nama || '').replace(/"/g, '""')}"`;
+            const kategori = `"${String(item.kategori || '').replace(/"/g, '""')}"`;
+            const harga = Number(item.harga || 0);
+            const stok = Number(item.stok || 0);
+            const satuan = `"${String(item.satuan || '').replace(/"/g, '""')}"`;
+            const batas = Number(item.batas_minimum || 0);
+            const status = item.is_deleted ? 'Nonaktif' : 'Aktif';
+
+            return [no, kode, nama, kategori, harga, stok, satuan, batas, status].join(',');
+        });
+
+        const csvContent = '\uFEFF' + [
+            ...metaRows.map(r => r.join(',')),
+            headers.join(','),
+            ...rows
+        ].join('\r\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+        const padZero = (n) => String(n).padStart(2, '0');
+        const fileDateStr = `${sekarang.getFullYear()}${padZero(sekarang.getMonth() + 1)}${padZero(sekarang.getDate())}_${padZero(sekarang.getHours())}${padZero(sekarang.getMinutes())}`;
+        const fileName = `data_barang_${fileDateStr}.csv`;
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        showToast(`Berhasil mengekspor ${data.length} barang ke format CSV!`, 'success');
+    } catch (err) {
+        console.error('Gagal mengekspor CSV:', err);
+        showToast('Terjadi kesalahan saat memproses ekspor CSV.', 'error');
+    }
 }

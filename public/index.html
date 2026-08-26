@@ -78,6 +78,38 @@
                         Baru</button>
                     <button id="btn-tambah-kategori" class="btn-primary btn-kategori"><i class="fa-solid fa-tags"></i>
                         Kelola Kategori</button>
+                    <!-- Tombol & Dropdown Menu Expor Data Barang -->
+                    <div class="export-dropdown-wrapper">
+                        <button type="button" id="btn-export-dropdown" class="btn-primary btn-export" title="Expor Data Barang">
+                            <i class="fa-solid fa-file-export"></i>
+                            <span>Expor Data</span>
+                            <i class="fa-solid fa-chevron-down export-chevron-icon" id="chevron-export-icon"></i>
+                        </button>
+                        <div id="export-menu-dropdown" class="export-menu-dropdown" style="display: none;">
+                            <div class="export-menu-header">
+                                <i class="fa-solid fa-download"></i>
+                                <span>Pilih Format Expor</span>
+                            </div>
+                            <button type="button" class="export-menu-item" id="btn-export-pdf">
+                                <div class="export-item-icon export-icon-pdf">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                </div>
+                                <div class="export-item-info">
+                                    <strong>Dokumen PDF (.pdf)</strong>
+                                    <span>Tabel rapi & siap cetak</span>
+                                </div>
+                            </button>
+                            <button type="button" class="export-menu-item" id="btn-export-csv">
+                                <div class="export-item-icon export-icon-csv">
+                                    <i class="fa-solid fa-file-csv"></i>
+                                </div>
+                                <div class="export-item-info">
+                                    <strong>File CSV (.csv)</strong>
+                                    <span>Format spreadsheet / Excel</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -719,6 +751,10 @@
             </form>
         </div>
     </div>
+
+    <!-- Memanggil library jsPDF dan autoTable untuk ekspor PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
     <!-- Memanggil file JavaScript dari dalam folder public/js/ -->
     <script src="js/api.js"></script>
