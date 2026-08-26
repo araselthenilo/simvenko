@@ -25,7 +25,10 @@ function updateDropdownBarang(barangData) {
     const dropdown = document.getElementById('trx-barang');
     dropdown.innerHTML = '<option value="">-- Pilih Barang --</option>'; // Reset opsi
     
-    barangData.forEach(item => {
+    // Pastikan hanya barang aktif yang masuk ke dropdown pilihan
+    const barangAktif = (barangData || []).filter(item => !item.is_deleted);
+
+    barangAktif.forEach(item => {
         const option = document.createElement('option');
         option.value = item.id_barang;
         option.textContent = `${item.id_barang} - ${item.nama} (Stok: ${item.stok})`;
@@ -38,22 +41,31 @@ function renderTabelRiwayat(riwayatData) {
     const tbody = document.getElementById('tabel-riwayat-body');
     tbody.innerHTML = '';
     
-    if (!riwayatData || riwayatData.length === 0) return;
+    if (!riwayatData || riwayatData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #888; padding: 20px;">Belum ada riwayat transaksi.</td></tr>`;
+        return;
+    }
 
     riwayatData.forEach(trx => {
         const barangInfo = globalDataBarang.find(b => b.id_barang === trx.id_barang);
-        const namaBarang = barangInfo ? barangInfo.nama : trx.id_barang;
+        let namaBarang = trx.id_barang;
+
+        if (barangInfo) {
+            if (barangInfo.is_deleted) {
+                namaBarang = `${barangInfo.nama} <span class="item-deleted-tag"><i class="fa-solid fa-ban"></i> Dihapus</span>`;
+            } else {
+                namaBarang = barangInfo.nama;
+            }
+        }
 
         const isMasuk = trx.jenis === 'masuk';
         const labelJenis = isMasuk ? 'Masuk' : 'Keluar';
         const iconClass = isMasuk ? 'fa-plus' : 'fa-minus';
         const badgeClass = isMasuk ? 'masuk' : 'keluar';
 
-        // --- INI KUNCI UTAMANYA ---
-        // Mengubah format tanggal mentah (apapun bentuknya) menjadi YYYY-MM-DD saja
+        // Mengubah format tanggal mentah menjadi YYYY-MM-DD
         let tanggalRapi = trx.tanggal;
         if (tanggalRapi) {
-            // Ambil 10 karakter pertama (contoh: "2026-08-21")
             tanggalRapi = String(tanggalRapi).substring(0, 10);
         }
 
@@ -86,7 +98,12 @@ document.getElementById('form-transaksi').addEventListener('submit', async (e) =
     };
 
     if (await catatTransaksi(trxBaru)) {
-        alert('Transaksi berhasil disimpan!');
+        if (typeof showToast === 'function') {
+            showToast('Transaksi berhasil disimpan!', 'success');
+        } else {
+            alert('Transaksi berhasil disimpan!');
+        }
+
         const form = document.getElementById('form-transaksi');
         form.reset();
         

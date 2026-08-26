@@ -67,7 +67,7 @@
                     <i class="fa-solid fa-magnifying-glass search-icon"></i>
                     <input type="text" id="input-pencarian" placeholder="Cari barang (nama/kode)...">
                 </div>
-                <button id="btn-tambah" class="btn-primary">+ Tambah Barang Baru</button>
+                <button id="btn-tambah" class="btn-primary"><i class="fa-solid fa-plus"></i> Tambah Barang Baru</button>
             </div>
 
             <table class="tabel-data">
@@ -95,7 +95,8 @@
             <div class="card" style="margin-bottom: 30px; text-align: left; border-top: 4px solid #9b59b6;">
                 <form id="form-transaksi" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
 
-                    <select id="trx-jenis" required style="padding: 10px; border-radius: 4px; border: 1px solid #27ae60; font-weight: 600; color: #27ae60; cursor: pointer;">
+                    <select id="trx-jenis" required
+                        style="padding: 10px; border-radius: 4px; border: 1px solid #27ae60; font-weight: 600; color: #27ae60; cursor: pointer;">
                         <option value="masuk" style="color: #27ae60; font-weight: 600;">+ Barang Masuk (Restock)</option>
                         <option value="keluar" style="color: #e74c3c; font-weight: 600;">- Barang Keluar (Terjual/Dipakai)</option>
                     </select>
@@ -149,46 +150,55 @@
                         <div id="tambah-error" class="form-error-message"></div>
 
                         <div class="form-group">
-                            <label for="input-kode"><i class="fa-solid fa-barcode"></i> Kode Barang <span class="required-star">*</span></label>
+                            <label for="input-kode"><i class="fa-solid fa-barcode"></i> Kode Barang <span
+                                    class="required-star">*</span></label>
                             <input type="text" id="input-kode" placeholder="Contoh: BRG-002" required>
                         </div>
 
                         <div class="form-group">
-                            <label for="input-nama"><i class="fa-solid fa-box-archive"></i> Nama Barang <span class="required-star">*</span></label>
+                            <label for="input-nama"><i class="fa-solid fa-box-archive"></i> Nama Barang <span
+                                    class="required-star">*</span></label>
                             <input type="text" id="input-nama" placeholder="Contoh: Pulpen Pilot Gel" required>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="input-kategori"><i class="fa-solid fa-tags"></i> Kategori <span class="required-star">*</span></label>
+                                <label for="input-kategori"><i class="fa-solid fa-tags"></i> Kategori <span
+                                        class="required-star">*</span></label>
                                 <input type="text" id="input-kategori" placeholder="Contoh: Alat Tulis" required>
                             </div>
                             <div class="form-group">
-                                <label for="input-satuan"><i class="fa-solid fa-cube"></i> Satuan <span class="required-star">*</span></label>
+                                <label for="input-satuan"><i class="fa-solid fa-cube"></i> Satuan <span
+                                        class="required-star">*</span></label>
                                 <input type="text" id="input-satuan" placeholder="Contoh: pcs, box" required>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="input-harga"><i class="fa-solid fa-money-bill-wave"></i> Harga Satuan (Rp) <span class="required-star">*</span></label>
+                                <label for="input-harga"><i class="fa-solid fa-money-bill-wave"></i> Harga Satuan (Rp)
+                                    <span class="required-star">*</span></label>
                                 <input type="number" id="input-harga" placeholder="0" min="0" required>
                             </div>
                             <div class="form-group">
-                                <label for="input-stok"><i class="fa-solid fa-layer-group"></i> Stok Awal <span class="required-star">*</span></label>
+                                <label for="input-stok"><i class="fa-solid fa-layer-group"></i> Stok Awal <span
+                                        class="required-star">*</span></label>
                                 <input type="number" id="input-stok" placeholder="0" min="0" required>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label for="input-batas"><i class="fa-solid fa-triangle-exclamation"></i> Batas Minimum Stok <span class="required-star">*</span></label>
+                            <label for="input-batas"><i class="fa-solid fa-triangle-exclamation"></i> Batas Minimum Stok
+                                <span class="required-star">*</span></label>
                             <input type="number" id="input-batas" placeholder="Contoh: 5" min="0" required>
-                            <span class="form-hint">Pemberitahuan peringatan akan aktif jika stok berada di bawah batas ini.</span>
+                            <span class="form-hint">Pemberitahuan peringatan akan aktif jika stok berada di bawah batas
+                                ini.</span>
                         </div>
 
                         <div class="form-actions">
                             <button type="button" class="btn-secondary" id="batal-tambah">Batal</button>
-                            <button type="submit" class="btn-primary"><i class="fa-solid fa-check"></i> Simpan Barang</button>
+                            <button type="submit" class="btn-primary"><i class="fa-solid fa-check"></i> Simpan
+                                Barang</button>
                         </div>
                     </form>
                 </div>
@@ -212,46 +222,111 @@
                         <div id="edit-error" class="form-error-message"></div>
 
                         <div class="form-group">
-                            <label for="edit-kode"><i class="fa-solid fa-barcode"></i> Kode Barang <span class="required-star">*</span></label>
+                            <label for="edit-kode"><i class="fa-solid fa-barcode"></i> Kode Barang <span
+                                    class="required-star">*</span></label>
                             <input type="text" id="edit-kode" placeholder="Kode Barang" required>
                         </div>
 
                         <div class="form-group">
-                            <label for="edit-nama"><i class="fa-solid fa-box-archive"></i> Nama Barang <span class="required-star">*</span></label>
+                            <label for="edit-nama"><i class="fa-solid fa-box-archive"></i> Nama Barang <span
+                                    class="required-star">*</span></label>
                             <input type="text" id="edit-nama" placeholder="Nama Barang" required>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="edit-kategori"><i class="fa-solid fa-tags"></i> Kategori <span class="required-star">*</span></label>
+                                <label for="edit-kategori"><i class="fa-solid fa-tags"></i> Kategori <span
+                                        class="required-star">*</span></label>
                                 <input type="text" id="edit-kategori" placeholder="Kategori" required>
                             </div>
                             <div class="form-group">
-                                <label for="edit-satuan"><i class="fa-solid fa-cube"></i> Satuan <span class="required-star">*</span></label>
+                                <label for="edit-satuan"><i class="fa-solid fa-cube"></i> Satuan <span
+                                        class="required-star">*</span></label>
                                 <input type="text" id="edit-satuan" placeholder="Satuan" required>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="edit-harga"><i class="fa-solid fa-money-bill-wave"></i> Harga Satuan (Rp) <span class="required-star">*</span></label>
+                                <label for="edit-harga"><i class="fa-solid fa-money-bill-wave"></i> Harga Satuan (Rp)
+                                    <span class="required-star">*</span></label>
                                 <input type="number" id="edit-harga" placeholder="0" min="0" required>
                             </div>
                             <div class="form-group">
-                                <label for="edit-stok"><i class="fa-solid fa-layer-group"></i> Jumlah Stok <span class="required-star">*</span></label>
+                                <label for="edit-stok"><i class="fa-solid fa-layer-group"></i> Jumlah Stok <span
+                                        class="required-star">*</span></label>
                                 <input type="number" id="edit-stok" placeholder="0" min="0" required>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label for="edit-batas"><i class="fa-solid fa-triangle-exclamation"></i> Batas Minimum Stok <span class="required-star">*</span></label>
+                            <label for="edit-batas"><i class="fa-solid fa-triangle-exclamation"></i> Batas Minimum Stok
+                                <span class="required-star">*</span></label>
                             <input type="number" id="edit-batas" placeholder="Batas Minimum Stok" min="0" required>
-                            <span class="form-hint">Pemberitahuan peringatan akan aktif jika stok berada di bawah batas ini.</span>
+                            <span class="form-hint">Pemberitahuan peringatan akan aktif jika stok berada di bawah batas
+                                ini.</span>
                         </div>
 
                         <div class="form-actions">
                             <button type="button" class="btn-secondary" id="batal-edit">Batal</button>
-                            <button type="submit" class="btn-primary" style="background-color: #3498db;"><i class="fa-solid fa-check"></i> Update Barang</button>
+                            <button type="submit" class="btn-primary" style="background-color: #3498db;"><i
+                                    class="fa-solid fa-check"></i> Update Barang</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODAL KONFIRMASI HAPUS BARANG (Soft Delete)    -->
+        <!-- ============================================== -->
+        <div id="modal-hapus" class="modal">
+            <div class="modal-content modal-hapus-content">
+                <div class="modal-header modal-header-danger">
+                    <h2><i class="fa-solid fa-triangle-exclamation" style="color: #e74c3c;"></i> Konfirmasi Hapus Barang
+                    </h2>
+                    <span class="close-btn" id="tutup-modal-hapus" title="Tutup">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form id="form-hapus-barang" novalidate>
+                        <input type="hidden" id="hapus-kode-target">
+
+                        <div class="delete-warning-box">
+                            <i class="fa-solid fa-circle-exclamation delete-warning-icon"></i>
+                            <div>
+                                <p class="delete-warning-title">Apakah Anda yakin ingin menghapus barang ini?</p>
+                                <p class="delete-warning-text">Barang akan dinonaktifkan dari daftar inventaris aktif.
+                                    Riwayat transaksi sebelumnya tetap akan tersimpan dan dapat teridentifikasi.</p>
+                            </div>
+                        </div>
+
+                        <div class="target-item-card">
+                            <div class="item-detail-row">
+                                <span class="label">Kode Barang:</span>
+                                <span class="badge-code" id="hapus-label-kode">-</span>
+                            </div>
+                            <div class="item-detail-row">
+                                <span class="label">Nama Barang:</span>
+                                <strong id="hapus-label-nama">-</strong>
+                            </div>
+                        </div>
+
+                        <div id="hapus-error" class="form-error-message"></div>
+
+                        <div class="form-group" style="margin-top: 15px;">
+                            <label for="input-konfirmasi-kode">
+                                <i class="fa-solid fa-shield-halved"></i> Ketik kode barang <code
+                                    class="confirm-code-highlight" id="hapus-instruksi-kode"></code> untuk konfirmasi:
+                            </label>
+                            <input type="text" id="input-konfirmasi-kode" placeholder="Ketik kode barang di sini..."
+                                autocomplete="off" required>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" id="batal-hapus">Batal</button>
+                            <button type="submit" class="btn-danger" id="btn-konfirmasi-hapus" disabled>
+                                <i class="fa-solid fa-trash"></i> Hapus Barang
+                            </button>
                         </div>
                     </form>
                 </div>

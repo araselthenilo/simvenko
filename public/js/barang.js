@@ -65,8 +65,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- INISIALISASI MODAL ---
     const modalTambah = document.getElementById('modal-tambah');
     const modalEdit = document.getElementById('modal-edit');
+    const modalHapus = document.getElementById('modal-hapus');
     const formTambah = document.getElementById('form-tambah-barang');
     const formEdit = document.getElementById('form-edit-barang');
+    const formHapus = document.getElementById('form-hapus-barang');
+    const inputKonfirmasiKode = document.getElementById('input-konfirmasi-kode');
+    const btnKonfirmasiHapus = document.getElementById('btn-konfirmasi-hapus');
+
+    let barangAkanDihapus = null;
 
     const bukaModalTambah = () => {
         formTambah.reset();
@@ -85,6 +91,27 @@ document.addEventListener('DOMContentLoaded', () => {
         hideFormError('edit-error', formEdit);
     };
 
+    const bukaModalHapus = (barang) => {
+        barangAkanDihapus = barang;
+        document.getElementById('hapus-kode-target').value = barang.id_barang;
+        document.getElementById('hapus-label-kode').textContent = barang.id_barang;
+        document.getElementById('hapus-label-nama').textContent = barang.nama;
+        document.getElementById('hapus-instruksi-kode').textContent = barang.id_barang;
+        inputKonfirmasiKode.value = '';
+        btnKonfirmasiHapus.disabled = true;
+        hideFormError('hapus-error', formHapus);
+        modalHapus.style.display = 'flex';
+        inputKonfirmasiKode.focus();
+    };
+
+    const tutupModalHapus = () => {
+        modalHapus.style.display = 'none';
+        barangAkanDihapus = null;
+        inputKonfirmasiKode.value = '';
+        btnKonfirmasiHapus.disabled = true;
+        hideFormError('hapus-error', formHapus);
+    };
+
     // Tombol Buka & Tutup Modal Tambah
     document.getElementById('btn-tambah').addEventListener('click', bukaModalTambah);
     document.getElementById('tutup-modal').addEventListener('click', tutupModalTambah);
@@ -94,10 +121,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('tutup-modal-edit').addEventListener('click', tutupModalEdit);
     document.getElementById('batal-edit').addEventListener('click', tutupModalEdit);
 
+    // Tombol Tutup Modal Hapus
+    document.getElementById('tutup-modal-hapus').addEventListener('click', tutupModalHapus);
+    document.getElementById('batal-hapus').addEventListener('click', tutupModalHapus);
+
     // Tutup modal jika klik di luar area konten (backdrop)
     window.addEventListener('click', (e) => {
         if (e.target === modalTambah) tutupModalTambah();
         if (e.target === modalEdit) tutupModalEdit();
+        if (e.target === modalHapus) tutupModalHapus();
     });
 
     // Tutup modal dengan tombol keyboard Escape
@@ -105,10 +137,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Escape') {
             if (modalTambah.style.display === 'flex') tutupModalTambah();
             if (modalEdit.style.display === 'flex') tutupModalEdit();
+            if (modalHapus.style.display === 'flex') tutupModalHapus();
         }
     });
 
-    // Bersihkan pesan error saat user mengetik
+    // Bersihkan pesan error saat user mengetik pada form tambah/edit
     formTambah.querySelectorAll('input').forEach(input => {
         input.addEventListener('input', () => {
             input.classList.remove('is-invalid');
@@ -127,6 +160,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 hideFormError('edit-error', formEdit);
             }
         });
+    });
+
+    // Validasi real-time input kode barang pada modal konfirmasi hapus
+    inputKonfirmasiKode.addEventListener('input', () => {
+        inputKonfirmasiKode.classList.remove('is-invalid');
+        const errorBox = document.getElementById('hapus-error');
+        if (errorBox && errorBox.style.display !== 'none') {
+            hideFormError('hapus-error', formHapus);
+        }
+
+        const kodeYangDimasukkan = inputKonfirmasiKode.value.trim();
+        const isMatch = barangAkanDihapus && (kodeYangDimasukkan === barangAkanDihapus.id_barang);
+        btnKonfirmasiHapus.disabled = !isMatch;
     });
 
     // --- PROSES SUBMIT TAMBAH BARANG ---
@@ -270,6 +316,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- PROSES SUBMIT HAPUS BARANG (KONFIRMASI KODE) ---
+    formHapus.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideFormError('hapus-error', formHapus);
+
+        if (!barangAkanDihapus) return;
+
+        const kodeDimasukkan = inputKonfirmasiKode.value.trim();
+        if (kodeDimasukkan !== barangAkanDihapus.id_barang) {
+            inputKonfirmasiKode.classList.add('is-invalid');
+            showFormError('hapus-error', `Kode barang tidak cocok. Harap ketik "${barangAkanDihapus.id_barang}" dengan benar.`);
+            return;
+        }
+
+        btnKonfirmasiHapus.disabled = true;
+        const hasil = await hapusDataBarang(barangAkanDihapus.id_barang);
+        if (hasil.sukses) {
+            showToast(hasil.message || 'Barang berhasil dihapus!', 'success');
+            tutupModalHapus();
+            loadDanTampilkanData();
+        } else {
+            showFormError('hapus-error', hasil.message || 'Gagal menghapus data barang.');
+            btnKonfirmasiHapus.disabled = false;
+        }
+    });
+
     // --- FITUR PENCARIAN (SEARCH) ---
     document.getElementById('input-pencarian').addEventListener('input', (e) => {
         const kataKunci = e.target.value.toLowerCase();
@@ -278,45 +350,36 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- FITUR KLIK TOMBOL EDIT DAN HAPUS ---
+    // --- FITUR KLIK TOMBOL EDIT DAN HAPUS PADA TABEL ---
     document.getElementById('tabel-barang-body').addEventListener('click', async (e) => {
         const btn = e.target.closest('button');
         if (!btn) return;
 
         const idBarang = btn.getAttribute('data-id');
+        const barang = globalDataBarang.find(b => b.id_barang === idBarang);
+        if (!barang) return;
 
         // Jika tombol HAPUS diklik
         if (btn.classList.contains('btn-hapus')) {
-            if (confirm(`Yakin ingin menghapus barang dengan kode: ${idBarang}?`)) {
-                const hasil = await hapusDataBarang(idBarang);
-                if (hasil.sukses) {
-                    showToast(hasil.message || 'Barang berhasil terhapus!', 'success');
-                    loadDanTampilkanData();
-                } else {
-                    showToast(hasil.message || 'Gagal menghapus barang.', 'error');
-                }
-            }
+            bukaModalHapus(barang);
         }
 
         // Jika tombol EDIT diklik
         if (btn.classList.contains('btn-edit')) {
-            const barang = globalDataBarang.find(b => b.id_barang === idBarang);
-            if (barang) {
-                hideFormError('edit-error', formEdit);
+            hideFormError('edit-error', formEdit);
 
-                // Isi formulir dengan data barang yang dipilih
-                document.getElementById('edit-kode-lama').value = barang.id_barang;
-                document.getElementById('edit-kode').value = barang.id_barang;
-                document.getElementById('edit-nama').value = barang.nama;
-                document.getElementById('edit-kategori').value = barang.kategori;
-                document.getElementById('edit-harga').value = barang.harga;
-                document.getElementById('edit-satuan').value = barang.satuan;
-                document.getElementById('edit-stok').value = barang.stok;
-                document.getElementById('edit-batas').value = barang.batas_minimum;
+            // Isi formulir dengan data barang yang dipilih
+            document.getElementById('edit-kode-lama').value = barang.id_barang;
+            document.getElementById('edit-kode').value = barang.id_barang;
+            document.getElementById('edit-nama').value = barang.nama;
+            document.getElementById('edit-kategori').value = barang.kategori;
+            document.getElementById('edit-harga').value = barang.harga;
+            document.getElementById('edit-satuan').value = barang.satuan;
+            document.getElementById('edit-stok').value = barang.stok;
+            document.getElementById('edit-batas').value = barang.batas_minimum;
 
-                modalEdit.style.display = 'flex';
-                document.getElementById('edit-nama').focus();
-            }
+            modalEdit.style.display = 'flex';
+            document.getElementById('edit-nama').focus();
         }
     });
 });
@@ -326,12 +389,16 @@ async function loadDanTampilkanData() {
     const data = await fetchData();
     if (data && data.barang) {
         globalDataBarang = data.barang;
-        updateDashboard(data.barang);
-        renderTabelBarang(data.barang);
+        
+        // Filter hanya data barang yang aktif (tidak di-soft delete)
+        const barangAktif = data.barang.filter(item => !item.is_deleted);
 
-        // Update dropdown pada halaman transaksi jika ada
+        updateDashboard(barangAktif);
+        renderTabelBarang(barangAktif);
+
+        // Update dropdown pada halaman transaksi hanya untuk barang aktif
         if (typeof updateDropdownBarang === 'function') {
-            updateDropdownBarang(data.barang);
+            updateDropdownBarang(barangAktif);
         }
         if (typeof renderTabelRiwayat === 'function' && data.riwayat) {
             renderTabelRiwayat(data.riwayat);
@@ -355,7 +422,7 @@ function renderTabelBarang(barang) {
     tbody.innerHTML = '';
 
     if (!barang || barang.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #888; padding: 20px;">Belum ada data barang. Silakan tambahkan barang baru.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #888; padding: 20px;">Belum ada data barang aktif. Silakan tambahkan barang baru.</td></tr>`;
         return;
     }
 

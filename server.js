@@ -52,9 +52,18 @@ let pool;
                 harga INT,
                 satuan VARCHAR(50),
                 stok INT,
-                batas_minimum INT
+                batas_minimum INT,
+                is_deleted TINYINT(1) DEFAULT 0
             )
         `);
+
+        // Migrasi kolom is_deleted jika tabel barang sudah ada sebelumnya
+        try {
+            await pool.query("ALTER TABLE barang ADD COLUMN is_deleted TINYINT(1) DEFAULT 0");
+        } catch (e) {
+            // Kolom is_deleted sudah ada
+        }
+
         await pool.query(`
             CREATE TABLE IF NOT EXISTS riwayat (
                 id_transaksi VARCHAR(100) PRIMARY KEY,
@@ -107,8 +116,21 @@ app.get('/api/data', async (req, res) => {
 app.post('/api/barang', async (req, res) => {
     const b = req.body;
     try {
+        const [existing] = await pool.query("SELECT is_deleted FROM barang WHERE id_barang = ?", [b.id_barang]);
+        if (existing.length > 0) {
+            if (existing[0].is_deleted) {
+                await pool.query(
+                    "UPDATE barang SET nama = ?, kategori = ?, harga = ?, satuan = ?, stok = ?, batas_minimum = ?, is_deleted = 0 WHERE id_barang = ?",
+                    [b.nama, b.kategori, b.harga, b.satuan, b.stok, b.batas_minimum, b.id_barang]
+                );
+                return res.json({ message: 'Barang berhasil ditambahkan kembali!' });
+            } else {
+                return res.status(400).json({ error: 'Kode Barang sudah digunakan!' });
+            }
+        }
+
         await pool.query(
-            "INSERT INTO barang (id_barang, nama, kategori, harga, satuan, stok, batas_minimum) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO barang (id_barang, nama, kategori, harga, satuan, stok, batas_minimum, is_deleted) VALUES (?, ?, ?, ?, ?, ?, ?, 0)",
             [b.id_barang, b.nama, b.kategori, b.harga, b.satuan, b.stok, b.batas_minimum]
         );
         res.json({ message: 'Barang berhasil ditambahkan!' });
@@ -121,6 +143,13 @@ app.put('/api/barang/:id', async (req, res) => {
     const idLama = req.params.id;
     const b = req.body;
     try {
+        if (b.id_barang !== idLama) {
+            const [exist] = await pool.query("SELECT id_barang FROM barang WHERE id_barang = ? AND id_barang != ?", [b.id_barang, idLama]);
+            if (exist.length > 0) {
+                return res.status(400).json({ error: 'Kode Barang baru sudah digunakan!' });
+            }
+        }
+
         await pool.query(
             "UPDATE barang SET id_barang = ?, nama = ?, kategori = ?, harga = ?, satuan = ?, stok = ?, batas_minimum = ? WHERE id_barang = ?",
             [b.id_barang, b.nama, b.kategori, b.harga, b.satuan, b.stok, b.batas_minimum, idLama]
@@ -133,7 +162,7 @@ app.put('/api/barang/:id', async (req, res) => {
 
 app.delete('/api/barang/:id', async (req, res) => {
     try {
-        await pool.query("DELETE FROM barang WHERE id_barang = ?", [req.params.id]);
+        await pool.query("UPDATE barang SET is_deleted = 1 WHERE id_barang = ?", [req.params.id]);
         res.json({ message: 'Barang berhasil dihapus!' });
     } catch (error) {
         res.status(500).json({ error: 'Gagal menghapus barang' });
@@ -154,8 +183,8 @@ app.post('/api/transaksi', async (req, res) => {
     try {
         await connection.beginTransaction();
 
-        const [rows] = await connection.query("SELECT stok FROM barang WHERE id_barang = ? FOR UPDATE", [trx.id_barang]);
-        if (rows.length === 0) throw new Error('Barang tidak ditemukan');
+        const [rows] = await connection.query("SELECT stok, is_deleted FROM barang WHERE id_barang = ? FOR UPDATE", [trx.id_barang]);
+        if (rows.length === 0 || rows[0].is_deleted) throw new Error('Barang tidak ditemukan atau sudah dinonaktifkan');
 
         let stokBaru = rows[0].stok;
         const qty = Number(trx.jumlah);
