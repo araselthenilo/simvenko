@@ -67,7 +67,100 @@
                     <i class="fa-solid fa-magnifying-glass search-icon"></i>
                     <input type="text" id="input-pencarian" placeholder="Cari barang (nama/kode)...">
                 </div>
-                <button id="btn-tambah" class="btn-primary"><i class="fa-solid fa-plus"></i> Tambah Barang Baru</button>
+                <button type="button" id="btn-toggle-advanced-filter" class="btn-filter-toggle">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Advanced Filtering</span>
+                    <span id="badge-filter-count" class="badge-filter-count" style="display: none;">0</span>
+                    <i class="fa-solid fa-chevron-down toggle-icon" id="chevron-filter-icon"></i>
+                </button>
+                <div class="toolbar-actions">
+                    <button id="btn-tambah" class="btn-primary"><i class="fa-solid fa-plus"></i> Tambah Barang
+                        Baru</button>
+                    <button id="btn-tambah-kategori" class="btn-primary btn-kategori"><i class="fa-solid fa-tags"></i>
+                        Kelola Kategori</button>
+                </div>
+            </div>
+
+            <!-- Segmen / Panel Advanced Filtering (Muncul saat ditekan dropdown) -->
+            <div id="panel-advanced-filter" class="advanced-filter-panel" style="display: none;">
+                <div class="advanced-filter-header">
+                    <div class="filter-header-title">
+                        <i class="fa-solid fa-filter"></i>
+                        <span>Advanced Filtering Options</span>
+                    </div>
+                    <button type="button" id="btn-reset-filter" class="btn-reset-filter" title="Reset Semua Filter">
+                        <i class="fa-solid fa-rotate-left"></i> Reset Filter
+                    </button>
+                </div>
+
+                <div class="advanced-filter-body">
+                    <!-- Filter 1: Status Keaktifan (Pills) -->
+                    <div class="filter-field-group">
+                        <label class="filter-field-label">
+                            <i class="fa-solid fa-toggle-on"></i> Status Keaktifan
+                        </label>
+                        <div class="filter-pills" id="filter-status-barang">
+                            <button type="button" class="filter-pill active" data-filter="semua">Semua (<span
+                                    id="count-barang-semua">0</span>)</button>
+                            <button type="button" class="filter-pill" data-filter="aktif">Aktif (<span
+                                    id="count-barang-aktif">0</span>)</button>
+                            <button type="button" class="filter-pill" data-filter="nonaktif">Nonaktif (<span
+                                    id="count-barang-nonaktif">0</span>)</button>
+                        </div>
+                    </div>
+
+                    <!-- Filter 2: Kategori Barang -->
+                    <div class="filter-field-group">
+                        <label class="filter-field-label" for="filter-kategori-barang">
+                            <i class="fa-solid fa-tags"></i> Kategori
+                        </label>
+                        <select id="filter-kategori-barang" class="filter-control-select">
+                            <option value="semua">Semua Kategori</option>
+                            <!-- Opsi kategori disuntikkan dinamis -->
+                        </select>
+                    </div>
+
+                    <!-- Filter 3: Status / Ambang Stok -->
+                    <div class="filter-field-group">
+                        <label class="filter-field-label" for="filter-kondisi-stok">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Kondisi Stok
+                        </label>
+                        <select id="filter-kondisi-stok" class="filter-control-select">
+                            <option value="semua">Semua Kondisi Stok</option>
+                            <option value="aman">Stok Normal / Aman</option>
+                            <option value="menipis">Stok Menipis (≤ Batas Min)</option>
+                            <option value="habis">Stok Habis (0)</option>
+                        </select>
+                    </div>
+
+                    <!-- Filter 4: Rentang Jumlah Stok -->
+                    <div class="filter-field-group">
+                        <label class="filter-field-label">
+                            <i class="fa-solid fa-cubes"></i> Rentang Stok
+                        </label>
+                        <div class="filter-range-inputs">
+                            <input type="number" id="filter-stok-min" placeholder="Min Stok" min="0"
+                                class="filter-control-input">
+                            <span class="range-dash">–</span>
+                            <input type="number" id="filter-stok-max" placeholder="Max Stok" min="0"
+                                class="filter-control-input">
+                        </div>
+                    </div>
+
+                    <!-- Filter 5: Rentang Harga (Rp) -->
+                    <div class="filter-field-group">
+                        <label class="filter-field-label">
+                            <i class="fa-solid fa-money-bill-wave"></i> Rentang Harga (Rp)
+                        </label>
+                        <div class="filter-range-inputs">
+                            <input type="number" id="filter-harga-min" placeholder="Min Rp" min="0" step="500"
+                                class="filter-control-input">
+                            <span class="range-dash">–</span>
+                            <input type="number" id="filter-harga-max" placeholder="Max Rp" min="0" step="500"
+                                class="filter-control-input">
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <table class="tabel-data">
@@ -78,6 +171,7 @@
                         <th>Kategori</th>
                         <th>Harga</th>
                         <th>Stok</th>
+                        <th>Status</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -89,36 +183,16 @@
 
         <!-- 3. HALAMAN TRANSAKSI & RIWAYAT -->
         <section id="halaman-transaksi" class="halaman">
-            <h1>Catat Transaksi Baru</h1>
-
-            <!-- Wadah Form Transaksi -->
-            <div class="card" style="margin-bottom: 30px; text-align: left; border-top: 4px solid #9b59b6;">
-                <form id="form-transaksi" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
-
-                    <select id="trx-jenis" required
-                        style="padding: 10px; border-radius: 4px; border: 1px solid #27ae60; font-weight: 600; color: #27ae60; cursor: pointer;">
-                        <option value="masuk" style="color: #27ae60; font-weight: 600;">+ Barang Masuk (Restock)</option>
-                        <option value="keluar" style="color: #e74c3c; font-weight: 600;">- Barang Keluar (Terjual/Dipakai)</option>
-                    </select>
-
-                    <select id="trx-barang" required
-                        style="padding: 10px; border-radius: 4px; border: 1px solid #ccc; flex: 1;">
-                        <option value="">-- Pilih Barang --</option>
-                        <!-- Daftar barang akan disuntikkan ke sini otomatis oleh JS -->
-                    </select>
-
-                    <input type="number" id="trx-jumlah" placeholder="Jumlah" required min="1"
-                        style="padding: 10px; border-radius: 4px; border: 1px solid #ccc; width: 100px;">
-
-                    <input type="text" id="trx-keterangan" placeholder="Keterangan / Supplier" required
-                        style="padding: 10px; border-radius: 4px; border: 1px solid #ccc; flex: 1;">
-
-                    <button type="submit" class="btn-primary" style="background-color: #9b59b6;">Simpan
-                        Transaksi</button>
-                </form>
+            <h1>Pengelolaan Transaksi & Riwayat</h1>
+            <div class="toolbar">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="input-pencarian-riwayat" placeholder="Cari riwayat transaksi...">
+                </div>
+                <button id="btn-tambah-transaksi" class="btn-primary" style="background-color: #9b59b6;"><i
+                        class="fa-solid fa-plus"></i> Catat Transaksi Baru</button>
             </div>
 
-            <h2>Riwayat Transaksi</h2>
             <table class="tabel-data">
                 <thead>
                     <tr>
@@ -135,6 +209,93 @@
                 </tbody>
             </table>
         </section>
+
+        <!-- ============================================== -->
+        <!-- MODAL CATAT TRANSAKSI BARU (Form Popup)        -->
+        <!-- ============================================== -->
+        <div id="modal-transaksi" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2><i class="fa-solid fa-receipt" style="color: #9b59b6;"></i> Catat Transaksi Baru</h2>
+                    <span class="close-btn" id="tutup-modal-transaksi" title="Tutup">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form id="form-transaksi" novalidate>
+                        <div id="transaksi-error" class="form-error-message"></div>
+
+                        <!-- 1. Langkah Pertama: Pilih Jenis Transaksi -->
+                        <div class="form-group">
+                            <label>
+                                <i class="fa-solid fa-arrow-right-arrow-left"></i> Jenis Transaksi <span
+                                    class="required-star">*</span>
+                            </label>
+                            <div class="trx-type-selector">
+                                <label class="trx-type-card active-masuk" id="card-trx-masuk">
+                                    <input type="radio" name="trx-jenis-radio" value="masuk" checked>
+                                    <div class="trx-type-icon"><i class="fa-solid fa-boxes-packing"></i></div>
+                                    <div class="trx-type-info">
+                                        <strong>Barang Masuk</strong>
+                                        <span>Restock / Pembelian</span>
+                                    </div>
+                                </label>
+                                <label class="trx-type-card" id="card-trx-keluar">
+                                    <input type="radio" name="trx-jenis-radio" value="keluar">
+                                    <div class="trx-type-icon"><i class="fa-solid fa-cart-arrow-down"></i></div>
+                                    <div class="trx-type-info">
+                                        <strong>Barang Keluar</strong>
+                                        <span>Penjualan / Pemakaian</span>
+                                    </div>
+                                </label>
+                            </div>
+                            <input type="hidden" id="trx-jenis" value="masuk">
+                        </div>
+
+                        <!-- 2. Langkah Kedua: Pilih Barang -->
+                        <div class="form-group">
+                            <label for="trx-barang">
+                                <i class="fa-solid fa-box-archive"></i> Pilih Barang <span
+                                    class="required-star">*</span>
+                            </label>
+                            <select id="trx-barang" class="form-select" required>
+                                <option value="">-- Pilih Barang --</option>
+                                <!-- Daftar barang akan disuntikkan ke sini otomatis oleh JS -->
+                            </select>
+                        </div>
+
+                        <!-- 3. Langkah Ketiga: Jumlah & Info Stok -->
+                        <div class="form-group">
+                            <label for="trx-jumlah">
+                                <i class="fa-solid fa-calculator"></i> Jumlah Barang <span
+                                    class="required-star">*</span>
+                            </label>
+                            <input type="number" id="trx-jumlah" placeholder="Contoh: 10" required min="1">
+                            <div id="trx-stok-preview" class="stock-live-hint" style="display: none;">
+                                <i class="fa-solid fa-circle-info"></i> <span id="trx-stok-preview-text">Stok tersedia:
+                                    0 pcs</span>
+                            </div>
+                        </div>
+
+                        <!-- 4. Langkah Keempat: Keterangan (Dinamis: Supplier vs Pembeli) -->
+                        <div class="form-group">
+                            <label for="trx-keterangan" id="label-trx-keterangan">
+                                <i class="fa-solid fa-truck-field" id="icon-trx-keterangan"></i> <span
+                                    id="text-trx-keterangan">Nama Supplier</span> <span class="required-star">*</span>
+                            </label>
+                            <input type="text" id="trx-keterangan" placeholder="Contoh: PT Sumber Makmur, CV Abadi Jaya"
+                                required>
+                            <span class="form-hint" id="hint-trx-keterangan">Masukkan nama supplier atau asal penerimaan
+                                barang.</span>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" id="batal-transaksi">Batal</button>
+                            <button type="submit" class="btn-primary" style="background-color: #9b59b6;"><i
+                                    class="fa-solid fa-check"></i> Simpan Transaksi</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
 
         <!-- ============================================== -->
         <!-- MODAL TAMBAH BARANG (Form Popup)               -->
@@ -165,7 +326,10 @@
                             <div class="form-group">
                                 <label for="input-kategori"><i class="fa-solid fa-tags"></i> Kategori <span
                                         class="required-star">*</span></label>
-                                <input type="text" id="input-kategori" placeholder="Contoh: Alat Tulis" required>
+                                <select id="input-kategori" class="form-select" required>
+                                    <option value="">-- Pilih Kategori --</option>
+                                    <!-- Opsi kategori disuntikkan dinamis dari database -->
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label for="input-satuan"><i class="fa-solid fa-cube"></i> Satuan <span
@@ -237,7 +401,10 @@
                             <div class="form-group">
                                 <label for="edit-kategori"><i class="fa-solid fa-tags"></i> Kategori <span
                                         class="required-star">*</span></label>
-                                <input type="text" id="edit-kategori" placeholder="Kategori" required>
+                                <select id="edit-kategori" class="form-select" required>
+                                    <option value="">-- Pilih Kategori --</option>
+                                    <!-- Opsi kategori disuntikkan dinamis dari database -->
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label for="edit-satuan"><i class="fa-solid fa-cube"></i> Satuan <span
@@ -278,12 +445,203 @@
         </div>
 
         <!-- ============================================== -->
-        <!-- MODAL KONFIRMASI HAPUS BARANG (Soft Delete)    -->
+        <!-- MODAL PENGELOLAAN DATA KATEGORI                -->
+        <!-- ============================================== -->
+        <div id="modal-kategori" class="modal">
+            <div class="modal-content modal-kategori-content">
+                <div class="modal-header">
+                    <h2><i class="fa-solid fa-tags" style="color: #e67e22;"></i> Pengelolaan Data Kategori</h2>
+                    <span class="close-btn" id="tutup-modal-kategori" title="Tutup">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="kategori-error" class="form-error-message"></div>
+
+                    <!-- Form Cepat Tambah Kategori -->
+                    <form id="form-tambah-kategori" novalidate>
+                        <label class="form-label-compact"><i class="fa-solid fa-plus-circle"></i> Tambah Kategori
+                            Baru:</label>
+                        <div class="category-add-row">
+                            <input type="text" id="input-nama-kategori" placeholder="Ketik nama kategori baru..."
+                                required autocomplete="off">
+                            <button type="submit" class="btn-primary" style="background-color: #e67e22;"><i
+                                    class="fa-solid fa-plus"></i> Tambah</button>
+                        </div>
+                    </form>
+
+                    <!-- Daftar Kategori Terdaftar -->
+                    <div class="category-manager-section">
+                        <div class="category-manager-header">
+                            <label class="category-list-label"><i class="fa-solid fa-layer-group"></i> Daftar Kategori
+                                Tersimpan:</label>
+                            <span class="category-count-badge" id="total-kategori-count">0 Kategori</span>
+                        </div>
+
+                        <div class="category-table-wrapper">
+                            <table class="category-mini-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nama Kategori</th>
+                                        <th>Jumlah Item</th>
+                                        <th>Status</th>
+                                        <th style="text-align: right;">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabel-kategori-body">
+                                    <!-- Daftar kategori akan disuntikkan ke sini via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="form-actions" style="margin-top: 15px;">
+                        <button type="button" class="btn-secondary" id="batal-kategori">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODAL EDIT NAMA KATEGORI                       -->
+        <!-- ============================================== -->
+        <div id="modal-edit-kategori" class="modal">
+            <div class="modal-content modal-sub-content">
+                <div class="modal-header">
+                    <h2><i class="fa-solid fa-pen-to-square" style="color: #3498db;"></i> Edit Nama Kategori</h2>
+                    <span class="close-btn" id="tutup-modal-edit-kategori" title="Tutup">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form id="form-edit-kategori-modal" novalidate>
+                        <input type="hidden" id="edit-cat-id">
+                        <input type="hidden" id="edit-cat-nama-lama">
+
+                        <div id="edit-cat-error" class="form-error-message"></div>
+
+                        <div class="form-group">
+                            <label for="edit-cat-input-nama"><i class="fa-solid fa-tag"></i> Nama Kategori Baru <span
+                                    class="required-star">*</span></label>
+                            <input type="text" id="edit-cat-input-nama" required autocomplete="off">
+                            <span class="form-hint" id="edit-cat-hint">Semua barang yang menggunakan kategori ini akan
+                                otomatis diperbarui.</span>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" id="batal-edit-kategori">Batal</button>
+                            <button type="submit" class="btn-primary" style="background-color: #3498db;"><i
+                                    class="fa-solid fa-check"></i> Simpan Perubahan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODAL PEMINDAHAN (MIGRASI) KATEGORI            -->
+        <!-- ============================================== -->
+        <div id="modal-pindah-kategori" class="modal">
+            <div class="modal-content modal-sub-content">
+                <div class="modal-header">
+                    <h2><i class="fa-solid fa-arrow-right-arrow-left" style="color: #8e44ad;"></i> Pemindahan Kategori
+                        Barang</h2>
+                    <span class="close-btn" id="tutup-modal-pindah-kategori" title="Tutup">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form id="form-pindah-kategori" novalidate>
+                        <input type="hidden" id="pindah-cat-asal">
+
+                        <div id="pindah-cat-error" class="form-error-message"></div>
+
+                        <div class="pindah-info-box">
+                            <div class="pindah-info-row">
+                                <span class="label">Kategori Asal:</span>
+                                <strong class="badge-cat-source" id="pindah-label-asal">-</strong>
+                            </div>
+                            <div class="pindah-info-row">
+                                <span class="label">Total Barang Terdampak:</span>
+                                <span class="badge-count-pill" id="pindah-label-count">0 barang</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 15px;">
+                            <label for="pindah-select-tujuan"><i class="fa-solid fa-folder-open"></i> Pindahkan Semua
+                                Barang ke Kategori Tujuan: <span class="required-star">*</span></label>
+                            <select id="pindah-select-tujuan" class="form-select" required>
+                                <option value="">-- Pilih Kategori Tujuan --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="pindah-check-nonaktif" checked>
+                                <span>Nonaktifkan kategori asal setelah seluruh barang dipindahkan</span>
+                            </label>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" id="batal-pindah-kategori">Batal</button>
+                            <button type="submit" class="btn-primary" style="background-color: #8e44ad;"><i
+                                    class="fa-solid fa-arrow-right-arrow-left"></i> Pindahkan Barang</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODAL KONFIRMASI EDIT HARGA / STOK             -->
+        <!-- ============================================== -->
+        <div id="modal-konfirmasi-edit" class="modal">
+            <div class="modal-content modal-konfirmasi-content">
+                <div class="modal-header modal-header-warning">
+                    <h2><i class="fa-solid fa-triangle-exclamation" style="color: #f39c12;"></i> Konfirmasi Perubahan
+                        Data</h2>
+                    <span class="close-btn" id="tutup-modal-konfirmasi-edit" title="Tutup">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="confirm-warning-box">
+                        <i class="fa-solid fa-circle-info confirm-warning-icon"></i>
+                        <div>
+                            <p class="confirm-warning-title">Perubahan Data Krusial Terdeteksi</p>
+                            <p class="confirm-warning-text">Anda melakukan perubahan pada <strong>Harga Satuan</strong>
+                                dan/atau <strong>Jumlah Stok</strong>. Pastikan nilai baru sudah sesuai sebelum
+                                disimpan.</p>
+                        </div>
+                    </div>
+
+                    <div class="target-item-card">
+                        <div class="item-detail-row">
+                            <span class="label">Kode Barang:</span>
+                            <span class="badge-code" id="konfirm-label-kode">-</span>
+                        </div>
+                        <div class="item-detail-row">
+                            <span class="label">Nama Barang:</span>
+                            <strong id="konfirm-label-nama">-</strong>
+                        </div>
+                    </div>
+
+                    <div class="change-diff-container" id="konfirm-diff-container">
+                        <!-- Perubahan Harga / Stok akan dirender di sini via JS -->
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" id="batal-konfirmasi-edit">Batal / Periksa
+                            Kembali</button>
+                        <button type="button" class="btn-primary" id="btn-ya-simpan-edit"
+                            style="background-color: #27ae60;">
+                            <i class="fa-solid fa-check"></i> Ya, Simpan Perubahan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODAL KONFIRMASI NONAKTIFKAN BARANG (Soft Delete) -->
         <!-- ============================================== -->
         <div id="modal-hapus" class="modal">
             <div class="modal-content modal-hapus-content">
                 <div class="modal-header modal-header-danger">
-                    <h2><i class="fa-solid fa-triangle-exclamation" style="color: #e74c3c;"></i> Konfirmasi Hapus Barang
+                    <h2><i class="fa-solid fa-triangle-exclamation" style="color: #e74c3c;"></i> Konfirmasi Nonaktifkan
+                        Barang
                     </h2>
                     <span class="close-btn" id="tutup-modal-hapus" title="Tutup">&times;</span>
                 </div>
@@ -294,9 +652,10 @@
                         <div class="delete-warning-box">
                             <i class="fa-solid fa-circle-exclamation delete-warning-icon"></i>
                             <div>
-                                <p class="delete-warning-title">Apakah Anda yakin ingin menghapus barang ini?</p>
-                                <p class="delete-warning-text">Barang akan dinonaktifkan dari daftar inventaris aktif.
-                                    Riwayat transaksi sebelumnya tetap akan tersimpan dan dapat teridentifikasi.</p>
+                                <p class="delete-warning-title">Apakah Anda yakin ingin menonaktifkan barang ini?</p>
+                                <p class="delete-warning-text">Barang akan ditandai <strong>Nonaktif</strong> dan tidak
+                                    dapat dipilih pada pencatatan transaksi baru. Riwayat transaksi sebelumnya tetap
+                                    tersimpan dan barang dapat diaktifkan kembali sewaktu-waktu.</p>
                             </div>
                         </div>
 
@@ -325,7 +684,7 @@
                         <div class="form-actions">
                             <button type="button" class="btn-secondary" id="batal-hapus">Batal</button>
                             <button type="submit" class="btn-danger" id="btn-konfirmasi-hapus" disabled>
-                                <i class="fa-solid fa-trash"></i> Hapus Barang
+                                <i class="fa-solid fa-ban"></i> Nonaktifkan Barang
                             </button>
                         </div>
                     </form>

@@ -4,14 +4,20 @@
     border-collapse: collapse;
     margin-top: 20px;
     background: white;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
-.tabel-data th, .tabel-data td {
+
+.tabel-data th,
+.tabel-data td {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid #ddd;
 }
-.tabel-data th { background-color: #34495e; color: white; }
+
+.tabel-data th {
+    background-color: #34495e;
+    color: white;
+}
 
 .btn-primary {
     background-color: #27ae60;
@@ -24,19 +30,28 @@
     font-weight: 600;
     transition: background-color 0.2s ease, transform 0.15s ease;
 }
+
 .btn-primary:hover {
     background-color: #219653;
 }
+
 .btn-primary:active {
     transform: scale(0.98);
 }
 
-.toolbar { margin: 20px 0; display: flex; gap: 15px; align-items: center; }
+.toolbar {
+    margin: 20px 0;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
 .search-box {
     position: relative;
     display: flex;
     align-items: center;
 }
+
 .search-box .search-icon {
     position: absolute;
     left: 12px;
@@ -45,6 +60,7 @@
     pointer-events: none;
     transition: color 0.2s ease;
 }
+
 .search-box input {
     padding: 10px 14px 10px 36px;
     width: 300px;
@@ -54,11 +70,13 @@
     box-sizing: border-box;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
+
 .search-box input:focus {
     outline: none;
     border-color: #3498db;
     box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
 }
+
 .search-box:focus-within .search-icon {
     color: #3498db;
 }
@@ -84,8 +102,13 @@
 }
 
 @keyframes fadeInModal {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .modal-content {
@@ -93,15 +116,22 @@
     border-radius: 10px;
     width: 100%;
     max-width: 520px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     position: relative;
     overflow: hidden;
     animation: slideDownModal 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideDownModal {
-    from { transform: translateY(-20px) scale(0.97); opacity: 0; }
-    to { transform: translateY(0) scale(1); opacity: 1; }
+    from {
+        transform: translateY(-20px) scale(0.97);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
 }
 
 .modal-header {
@@ -168,7 +198,8 @@
     font-weight: bold;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
     width: 100%;
     padding: 9px 12px;
     border: 1px solid #cbd5e1;
@@ -176,21 +207,25 @@
     font-size: 14px;
     color: #2c3e50;
     box-sizing: border-box;
+    background-color: white;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
     outline: none;
     border-color: #3498db;
     box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
 }
 
-.form-group input.is-invalid {
+.form-group input.is-invalid,
+.form-group select.is-invalid {
     border-color: #e74c3c !important;
     background-color: #fff9f9;
 }
 
-.form-group input.is-invalid:focus {
+.form-group input.is-invalid:focus,
+.form-group select.is-invalid:focus {
     box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.25);
 }
 
@@ -271,7 +306,7 @@
     color: #2c3e50;
     padding: 12px 16px;
     border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
     border-left: 4px solid #27ae60;
     display: flex;
     align-items: center;
@@ -290,13 +325,27 @@
 }
 
 @keyframes toastIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 @keyframes toastOut {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(100%); opacity: 0; }
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
 }
 
 /* --- BADGE TRANSAKSI --- */
@@ -309,11 +358,13 @@
     font-size: 13px;
     font-weight: 600;
 }
+
 .badge-transaksi.masuk {
     color: #27ae60;
     background-color: rgba(39, 174, 96, 0.12);
     border: 1px solid rgba(39, 174, 96, 0.25);
 }
+
 .badge-transaksi.keluar {
     color: #e74c3c;
     background-color: rgba(231, 76, 60, 0.12);
@@ -331,6 +382,132 @@
     border-radius: 4px;
     margin-left: 6px;
     font-weight: 500;
+}
+
+/* ============================================== */
+/* --- MODAL KONFIRMASI EDIT (HARGA / STOK) --- */
+/* ============================================== */
+.modal-konfirmasi-content {
+    max-width: 480px;
+}
+
+.modal-header-warning {
+    background-color: #fffdf5;
+    border-bottom: 1px solid #fef3c7;
+}
+
+.confirm-warning-box {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background-color: #fffbeb;
+    border: 1px solid #fef3c7;
+    border-left: 4px solid #f59e0b;
+    padding: 12px 14px;
+    border-radius: 6px;
+    margin-bottom: 14px;
+}
+
+.confirm-warning-icon {
+    color: #d97706;
+    font-size: 18px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.confirm-warning-title {
+    margin: 0 0 4px 0;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #92400e;
+}
+
+.confirm-warning-text {
+    margin: 0;
+    font-size: 12px;
+    color: #b45309;
+    line-height: 1.4;
+}
+
+.change-diff-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.diff-card {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px 14px;
+}
+
+.diff-header {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.diff-header i {
+    color: #f59e0b;
+}
+
+.diff-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #edf2f7;
+}
+
+.diff-col {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.diff-col.old-val {
+    text-align: left;
+}
+
+.diff-col.new-val {
+    text-align: right;
+}
+
+.diff-tag {
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.diff-val {
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+.diff-col.old-val .diff-val {
+    color: #64748b;
+    text-decoration: line-through;
+}
+
+.diff-col.new-val .diff-val {
+    color: #0f766e;
+    font-weight: 700;
+}
+
+.diff-arrow {
+    color: #94a3b8;
+    font-size: 13px;
+    padding: 0 4px;
 }
 
 /* ============================================== */
@@ -450,4 +627,705 @@
     opacity: 0.5;
     cursor: not-allowed;
     background-color: #94a3b8;
+}
+
+/* ============================================== */
+/* --- MODAL TRANSAKSI & TYPE SELECTOR --- */
+/* ============================================== */
+.trx-type-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.trx-type-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: #f8fafc;
+    transition: all 0.2s ease;
+    user-select: none;
+    position: relative;
+}
+
+.trx-type-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.trx-type-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #e2e8f0;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.trx-type-icon i {
+    font-size: 16px !important;
+    width: auto !important;
+    color: #64748b;
+    transition: color 0.2s ease;
+}
+
+.trx-type-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.trx-type-info strong {
+    font-size: 13.5px;
+    color: #334155;
+    line-height: 1.2;
+    transition: color 0.2s ease;
+}
+
+.trx-type-info span {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+/* Card State: Active Masuk (Restock) */
+.trx-type-card.active-masuk {
+    border-color: #27ae60;
+    background-color: #f0fdf4;
+}
+
+.trx-type-card.active-masuk .trx-type-icon {
+    background-color: #27ae60;
+}
+
+.trx-type-card.active-masuk .trx-type-icon i {
+    color: #ffffff !important;
+}
+
+.trx-type-card.active-masuk .trx-type-info strong {
+    color: #166534;
+}
+
+/* Card State: Active Keluar (Penjualan) */
+.trx-type-card.active-keluar {
+    border-color: #e74c3c;
+    background-color: #fef2f2;
+}
+
+.trx-type-card.active-keluar .trx-type-icon {
+    background-color: #e74c3c;
+}
+
+.trx-type-card.active-keluar .trx-type-icon i {
+    color: #ffffff !important;
+}
+
+.trx-type-card.active-keluar .trx-type-info strong {
+    color: #991b1b;
+}
+
+.trx-type-card:hover:not(.active-masuk):not(.active-keluar) {
+    border-color: #cbd5e1;
+    background-color: #f1f5f9;
+}
+
+/* Hint stok live */
+.stock-live-hint {
+    margin-top: 6px;
+    padding: 6px 10px;
+    background-color: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #0369a1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: fadeInModal 0.2s ease;
+}
+
+.stock-live-hint.warning-stock {
+    background-color: #fffbeb;
+    border-color: #fde68a;
+    color: #b45309;
+}
+
+.stock-live-hint.danger-stock {
+    background-color: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+/* ============================================== */
+/* --- TOOLBAR ACTIONS & KATEGORI STYLING --- */
+/* ============================================== */
+.toolbar-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-kategori {
+    background-color: #e67e22 !important;
+}
+
+.btn-kategori:hover {
+    background-color: #d35400 !important;
+}
+
+.modal-kategori-content {
+    max-width: 620px;
+}
+
+.modal-sub-content {
+    max-width: 480px;
+}
+
+.form-label-compact {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+}
+
+.category-add-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.category-add-row input {
+    flex: 1;
+    padding: 9px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    font-size: 14px;
+    color: #2c3e50;
+    box-sizing: border-box;
+}
+
+.category-manager-section {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 5px;
+}
+
+.category-manager-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.category-list-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin: 0;
+}
+
+.category-count-badge {
+    background-color: #e2e8f0;
+    color: #475569;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.category-table-wrapper {
+    max-height: 240px;
+    overflow-y: auto;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+}
+
+.category-mini-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.category-mini-table th {
+    background-color: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.category-mini-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.category-mini-table tr:hover {
+    background-color: #f8fafc;
+}
+
+.category-name-cell {
+    font-weight: 600;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.category-name-cell.deleted {
+    color: #94a3b8;
+    text-decoration: line-through;
+}
+
+.badge-item-count {
+    background-color: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 12px;
+}
+
+.badge-item-count.zero {
+    background-color: #f1f5f9;
+    color: #64748b;
+    border-color: #e2e8f0;
+}
+
+.badge-status-active {
+    color: #16a34a;
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+.badge-status-inactive {
+    color: #dc2626;
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+.category-actions-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.btn-action-cat {
+    border: none;
+    background: transparent;
+    padding: 5px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.15s ease;
+}
+
+.btn-action-cat.btn-edit-cat {
+    color: #2563eb;
+    background-color: #eff6ff;
+}
+
+.btn-action-cat.btn-edit-cat:hover {
+    background-color: #dbeafe;
+}
+
+.btn-action-cat.btn-pindah-cat {
+    color: #7c3aed;
+    background-color: #f5f3ff;
+}
+
+.btn-action-cat.btn-pindah-cat:hover {
+    background-color: #ede9fe;
+}
+
+.btn-action-cat.btn-delete-cat {
+    color: #dc2626;
+    background-color: #fef2f2;
+}
+
+.btn-action-cat.btn-delete-cat:hover {
+    background-color: #fee2e2;
+}
+
+.btn-action-cat.btn-restore-cat {
+    color: #16a34a;
+    background-color: #f0fdf4;
+}
+
+.btn-action-cat.btn-restore-cat:hover {
+    background-color: #dcfce7;
+}
+
+/* Info Box Pindah Kategori */
+.pindah-info-box {
+    background-color: #faf5ff;
+    border: 1px solid #e9d5ff;
+    border-radius: 6px;
+    padding: 12px 14px;
+}
+
+.pindah-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+.pindah-info-row:last-child {
+    margin-bottom: 0;
+}
+
+.pindah-info-row .label {
+    color: #6b21a8;
+}
+
+.badge-cat-source {
+    background-color: #8e44ad;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12.5px;
+}
+
+.badge-count-pill {
+    background-color: #e9d5ff;
+    color: #581c87;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+}
+
+.checkbox-group {
+    margin-top: 14px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13px;
+    color: #475569;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: auto;
+    margin-top: 2px;
+    cursor: pointer;
+}
+
+/* ============================================== */
+/* ============================================== */
+/* --- ADVANCED FILTERING & PILLS STATUS BARANG --- */
+/* ============================================== */
+.btn-filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background-color: #ffffff;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    position: relative;
+    user-select: none;
+}
+
+.btn-filter-toggle:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+    color: #1e293b;
+}
+
+.btn-filter-toggle.active {
+    background-color: #eff6ff;
+    border-color: #3b82f6;
+    color: #1d4ed8;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.btn-filter-toggle .toggle-icon {
+    font-size: 11px;
+    transition: transform 0.25s ease;
+    color: #64748b;
+}
+
+.btn-filter-toggle.active .toggle-icon {
+    transform: rotate(180deg);
+    color: #1d4ed8;
+}
+
+.badge-filter-count {
+    background-color: #3b82f6;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 10px;
+    min-width: 16px;
+    text-align: center;
+    line-height: 14px;
+}
+
+/* Panel Advanced Filter */
+.advanced-filter-panel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-top: 12px;
+    margin-bottom: 20px;
+    padding: 16px 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    animation: slideDownFilter 0.2s ease-out;
+}
+
+@keyframes slideDownFilter {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.advanced-filter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 16px;
+}
+
+.filter-header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.filter-header-title i {
+    color: #3b82f6;
+}
+
+.btn-reset-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px dashed #cbd5e1;
+    border-radius: 5px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-reset-filter:hover {
+    background-color: #fee2e2;
+    border-color: #f87171;
+    color: #b91c1c;
+}
+
+.advanced-filter-body {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px 24px;
+    align-items: start;
+}
+
+@media (max-width: 980px) {
+    .advanced-filter-body {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .advanced-filter-body {
+        grid-template-columns: 1fr;
+    }
+}
+
+.filter-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    width: 100%;
+}
+
+.filter-field-label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.filter-field-label i {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.filter-control-select,
+.filter-control-input {
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #1e293b;
+    background-color: #f8fafc;
+    transition: all 0.2s ease;
+    width: 100%;
+    height: 38px;
+    box-sizing: border-box;
+}
+
+.filter-control-select:focus,
+.filter-control-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.filter-range-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.filter-range-inputs .filter-control-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.range-dash {
+    color: #94a3b8;
+    font-weight: 600;
+    user-select: none;
+}
+
+.filter-pills {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: nowrap;
+    width: 100%;
+    height: 38px;
+}
+
+.filter-pill {
+    padding: 7px 12px;
+    border-radius: 20px;
+    font-size: 12.5px;
+    font-weight: 500;
+    border: 1px solid #cbd5e1;
+    background-color: white;
+    color: #475569;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+    text-align: center;
+    flex: 1;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.filter-pill:hover:not(.active) {
+    background-color: #f1f5f9;
+    color: #1e293b;
+}
+
+.filter-pill.active {
+    background-color: #34495e;
+    color: white;
+    border-color: #34495e;
+    font-weight: 600;
+}
+
+/* ============================================== */
+/* --- HIGHLIGHT BARIS TABEL BARANG --- */
+/* ============================================== */
+/* Baris Stok Menipis: Kuning - Oranye */
+.tr-stok-menipis {
+    background-color: #fffbeb !important;
+    border-left: 4px solid #f59e0b;
+}
+
+.tr-stok-menipis:hover {
+    background-color: #fef3c7 !important;
+}
+
+/* Baris Stok Habis: Merah */
+.tr-stok-habis {
+    background-color: #fef2f2 !important;
+    border-left: 4px solid #ef4444;
+}
+
+.tr-stok-habis:hover {
+    background-color: #fee2e2 !important;
+}
+
+/* Baris Barang Nonaktif di Tabel */
+.tr-item-inactive {
+    background-color: #f8fafc !important;
+    border-left: 4px solid #cbd5e1;
+}
+
+.tr-item-inactive:hover {
+    background-color: #f1f5f9 !important;
+}
+
+.tr-item-inactive td {
+    color: #64748b;
+}
+
+.tr-item-inactive .item-name-text {
+    text-decoration: line-through;
+    color: #94a3b8;
+}
+
+.btn-restore-barang {
+    background-color: #27ae60 !important;
+}
+
+.btn-restore-barang:hover {
+    background-color: #219653 !important;
 }
