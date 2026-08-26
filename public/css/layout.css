@@ -81,13 +81,78 @@ body {
 .login-box h2 { margin-bottom: 20px; color: #2c3e50; }
 .login-box p { margin-bottom: 20px; color: #7f8c8d; }
 
-.login-box input {
-    width: 100%;
-    padding: 12px;
+.login-box .input-group {
+    position: relative;
     margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.login-box .input-group .input-icon {
+    position: absolute;
+    left: 14px;
+    color: #95a5a6;
+    font-size: 15px;
+    pointer-events: none;
+    transition: color 0.2s ease;
+}
+
+.login-box .input-group input {
+    width: 100%;
+    padding: 12px 40px 12px 40px;
+    margin-bottom: 0;
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box; /* Agar padding tidak merusak lebar kotak */
+    font-size: 14px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-box .input-group .toggle-password {
+    position: absolute;
+    right: 14px;
+    color: #95a5a6;
+    font-size: 15px;
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.15s ease;
+    user-select: none;
+}
+
+.login-box .input-group .toggle-password:hover {
+    color: #3498db;
+}
+
+.login-box .input-group .toggle-password:active {
+    transform: scale(0.9);
+}
+
+.login-box .input-group input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.login-box .input-group:focus-within .input-icon {
+    color: #3498db;
+}
+
+.login-box .login-error-message {
+    color: #e74c3c;
+    font-size: 13px;
+    font-weight: 500;
+    margin: -4px 0 14px 0;
+    text-align: center;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    animation: shakeError 0.35s ease;
+}
+
+@keyframes shakeError {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-4px); }
+    40%, 80% { transform: translateX(4px); }
 }
 
 .login-box button {

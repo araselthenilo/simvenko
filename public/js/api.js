@@ -17,10 +17,14 @@ async function tambahDataBarang(barangBaru) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(barangBaru)
         });
-        return response.ok;
+        const data = await response.json();
+        if (!response.ok) {
+            return { sukses: false, message: data.error || 'Gagal menambah barang!' };
+        }
+        return { sukses: true, message: data.message || 'Barang berhasil ditambahkan!' };
     } catch (error) {
         console.error("Gagal menambah barang:", error);
-        return false;
+        return { sukses: false, message: 'Terjadi kesalahan jaringan saat menambah barang.' };
     }
 }
 
@@ -28,10 +32,14 @@ async function tambahDataBarang(barangBaru) {
 async function hapusDataBarang(id) {
     try {
         const response = await fetch(`/api/barang/${id}`, { method: 'DELETE' });
-        return response.ok;
+        const data = await response.json();
+        if (!response.ok) {
+            return { sukses: false, message: data.error || 'Gagal menghapus barang!' };
+        }
+        return { sukses: true, message: data.message || 'Barang berhasil dihapus!' };
     } catch (error) {
         console.error("Gagal menghapus barang:", error);
-        return false;
+        return { sukses: false, message: 'Terjadi kesalahan jaringan saat menghapus barang.' };
     }
 }
 
@@ -43,10 +51,14 @@ async function editDataBarang(idLama, dataUpdate) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(dataUpdate)
         });
-        return response.ok;
+        const data = await response.json();
+        if (!response.ok) {
+            return { sukses: false, message: data.error || 'Gagal mengedit barang!' };
+        }
+        return { sukses: true, message: data.message || 'Data barang berhasil diperbarui!' };
     } catch (error) {
         console.error("Gagal mengedit barang:", error);
-        return false;
+        return { sukses: false, message: 'Terjadi kesalahan jaringan saat mengedit barang.' };
     }
 }
 

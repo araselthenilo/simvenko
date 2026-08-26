@@ -1,6 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Fungsi ini dipanggil dari barang.js setiap kali data di-load
-    // untuk memastikan dropdown pilihan barang selalu up-to-date
+    // Inisialisasi styling warna dropdown pilihan jenis transaksi
+    const trxJenis = document.getElementById('trx-jenis');
+    if (trxJenis) {
+        const updateJenisColor = () => {
+            if (trxJenis.value === 'masuk') {
+                trxJenis.style.color = '#27ae60';
+                trxJenis.style.borderColor = '#27ae60';
+            } else if (trxJenis.value === 'keluar') {
+                trxJenis.style.color = '#e74c3c';
+                trxJenis.style.borderColor = '#e74c3c';
+            } else {
+                trxJenis.style.color = '#333';
+                trxJenis.style.borderColor = '#ccc';
+            }
+        };
+
+        trxJenis.addEventListener('change', updateJenisColor);
+        updateJenisColor();
+    }
 });
 
 // Fungsi untuk mengisi opsi pada pilihan barang di form transaksi
@@ -27,8 +44,10 @@ function renderTabelRiwayat(riwayatData) {
         const barangInfo = globalDataBarang.find(b => b.id_barang === trx.id_barang);
         const namaBarang = barangInfo ? barangInfo.nama : trx.id_barang;
 
-        const warnaJenis = trx.jenis === 'masuk' ? '#27ae60' : '#e74c3c';
-        const labelJenis = trx.jenis === 'masuk' ? '📥 Masuk' : '📤 Keluar';
+        const isMasuk = trx.jenis === 'masuk';
+        const labelJenis = isMasuk ? 'Masuk' : 'Keluar';
+        const iconClass = isMasuk ? 'fa-plus' : 'fa-minus';
+        const badgeClass = isMasuk ? 'masuk' : 'keluar';
 
         // --- INI KUNCI UTAMANYA ---
         // Mengubah format tanggal mentah (apapun bentuknya) menjadi YYYY-MM-DD saja
@@ -41,7 +60,11 @@ function renderTabelRiwayat(riwayatData) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${tanggalRapi}</td>
-            <td style="color: ${warnaJenis}; font-weight: bold;">${labelJenis}</td>
+            <td>
+                <span class="badge-transaksi ${badgeClass}">
+                    <i class="fa-solid ${iconClass}"></i> ${labelJenis}
+                </span>
+            </td>
             <td>${namaBarang}</td>
             <td>${trx.jumlah}</td>
             <td>${trx.keterangan}</td>
@@ -64,7 +87,13 @@ document.getElementById('form-transaksi').addEventListener('submit', async (e) =
 
     if (await catatTransaksi(trxBaru)) {
         alert('Transaksi berhasil disimpan!');
-        document.getElementById('form-transaksi').reset();
+        const form = document.getElementById('form-transaksi');
+        form.reset();
+        
+        const trxJenis = document.getElementById('trx-jenis');
+        if (trxJenis) {
+            trxJenis.dispatchEvent(new Event('change'));
+        }
         
         // Panggil fungsi dari barang.js untuk memuat ulang SEMUA data (stok dan riwayat)
         loadDanTampilkanData(); 

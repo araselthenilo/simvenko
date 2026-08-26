@@ -16,6 +16,15 @@ let pool;
 
 (async () => {
     try {
+        // Buat database jika belum ada
+        const initConn = await mysql.createConnection({
+            host: process.env.DB_HOST,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASSWORD
+        });
+        await initConn.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\``);
+        await initConn.end();
+
         pool = mysql.createPool({
             host: process.env.DB_HOST,
             user: process.env.DB_USER,      
