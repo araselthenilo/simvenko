@@ -145,6 +145,103 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+// Endpoint untuk update profil (username) & ganti password admin
+app.post('/api/admin/update-profil', async (req, res) => {
+    try {
+        const { usernameLama, usernameBaru, passwordLama, passwordBaru, konfirmasiPassword } = req.body;
+
+        if (!usernameLama || !passwordLama) {
+            return res.status(400).json({ sukses: false, message: 'Username saat ini dan Password saat ini wajib diisi!' });
+        }
+
+        const targetUsername = (usernameBaru && usernameBaru.trim()) ? usernameBaru.trim() : usernameLama.trim();
+        if (!targetUsername) {
+            return res.status(400).json({ sukses: false, message: 'Username tidak boleh kosong!' });
+        }
+
+        // Verifikasi apakah akun admin dan password lama cocok
+        const [rows] = await pool.query("SELECT * FROM admin WHERE username = ? AND password = ?", [usernameLama, passwordLama]);
+        if (rows.length === 0) {
+            return res.status(400).json({ sukses: false, message: 'Password saat ini (lama) yang Anda masukkan salah!' });
+        }
+
+        // Jika username diubah, cek apakah username baru sudah dipakai oleh akun lain
+        if (targetUsername !== usernameLama) {
+            const [checkUser] = await pool.query("SELECT * FROM admin WHERE username = ?", [targetUsername]);
+            if (checkUser.length > 0) {
+                return res.status(400).json({ sukses: false, message: 'Username baru sudah digunakan!' });
+            }
+        }
+
+        let finalPassword = passwordLama;
+        const mauGantiPassword = Boolean(passwordBaru && passwordBaru.trim());
+
+        if (mauGantiPassword) {
+            if (passwordBaru.length < 3) {
+                return res.status(400).json({ sukses: false, message: 'Password baru minimal harus 3 karakter!' });
+            }
+            if (passwordBaru !== konfirmasiPassword) {
+                return res.status(400).json({ sukses: false, message: 'Konfirmasi password baru tidak cocok!' });
+            }
+            if (passwordLama === passwordBaru) {
+                return res.status(400).json({ sukses: false, message: 'Password baru tidak boleh sama dengan password saat ini!' });
+            }
+            finalPassword = passwordBaru;
+        }
+
+        // Update username dan password di tabel admin
+        await pool.query("UPDATE admin SET username = ?, password = ? WHERE username = ?", [targetUsername, finalPassword, usernameLama]);
+
+        res.json({
+            sukses: true,
+            message: mauGantiPassword ? 'Profil dan password berhasil diperbarui!' : 'Nama profil berhasil diperbarui!',
+            username: targetUsername
+        });
+    } catch (error) {
+        console.error("Gagal mengupdate profil admin:", error);
+        res.status(500).json({ sukses: false, message: 'Terjadi kesalahan pada server saat memperbarui profil.' });
+    }
+});
+
+// Endpoint untuk ganti password admin sendiri (kompatibilitas)
+app.post('/api/admin/ganti-password', async (req, res) => {
+    try {
+        const { username, usernameLama, usernameBaru, passwordLama, passwordBaru, konfirmasiPassword } = req.body;
+        const uLama = usernameLama || username;
+        const uBaru = usernameBaru || username || usernameLama;
+
+        if (!uLama || !passwordLama) {
+            return res.status(400).json({ sukses: false, message: 'Semua kolom password wajib diisi!' });
+        }
+
+        // Jika hanya ganti password biasa
+        if (passwordBaru) {
+            if (passwordBaru.length < 3) {
+                return res.status(400).json({ sukses: false, message: 'Password baru minimal harus 3 karakter!' });
+            }
+            if (passwordBaru !== konfirmasiPassword) {
+                return res.status(400).json({ sukses: false, message: 'Konfirmasi password baru tidak cocok!' });
+            }
+            if (passwordLama === passwordBaru) {
+                return res.status(400).json({ sukses: false, message: 'Password baru tidak boleh sama dengan password lama!' });
+            }
+        }
+
+        const [rows] = await pool.query("SELECT * FROM admin WHERE username = ? AND password = ?", [uLama, passwordLama]);
+        if (rows.length === 0) {
+            return res.status(400).json({ sukses: false, message: 'Password saat ini (lama) yang Anda masukkan salah!' });
+        }
+
+        const targetPass = passwordBaru || passwordLama;
+        await pool.query("UPDATE admin SET username = ?, password = ? WHERE username = ?", [uBaru, targetPass, uLama]);
+
+        res.json({ sukses: true, message: 'Perubahan berhasil disimpan!', username: uBaru });
+    } catch (error) {
+        console.error("Gagal mengganti password admin:", error);
+        res.status(500).json({ sukses: false, message: 'Terjadi kesalahan pada server.' });
+    }
+});
+
 app.get('/api/data', async (req, res) => {
     try {
         const [barang] = await pool.query("SELECT * FROM barang");

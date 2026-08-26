@@ -198,4 +198,42 @@ async function aktifkanDataKategori(id) {
         return { sukses: false, message: 'Terjadi kesalahan jaringan saat mengaktifkan kategori.' };
     }
 }
+
+// Mengirim permintaan update profil & ganti password admin ke server
+async function updateProfilAdmin(dataUpdateProfil) {
+    try {
+        const response = await fetch('/api/admin/update-profil', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataUpdateProfil)
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            return { sukses: false, message: data.message || 'Gagal memperbarui profil!' };
+        }
+        return { sukses: true, message: data.message || 'Profil berhasil diperbarui!', username: data.username };
+    } catch (error) {
+        console.error("Gagal memperbarui profil admin:", error);
+        return { sukses: false, message: 'Terjadi kesalahan jaringan saat memperbarui profil.' };
+    }
+}
+
+// Mengirim permintaan ganti password admin ke server
+async function gantiPasswordAdmin(dataGantiPassword) {
+    try {
+        const response = await fetch('/api/admin/ganti-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataGantiPassword)
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            return { sukses: false, message: data.message || 'Gagal mengganti password!' };
+        }
+        return { sukses: true, message: data.message || 'Password berhasil diperbarui!', username: data.username };
+    } catch (error) {
+        console.error("Gagal mengganti password admin:", error);
+        return { sukses: false, message: 'Terjadi kesalahan jaringan saat mengganti password.' };
+    }
+}
 

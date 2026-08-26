@@ -169,7 +169,95 @@ body {
 }
 
 .sidebar-bottom {
-    padding: 15px;
+    padding: 15px 0 0 0;
+}
+
+/* --- TAMPILAN KARTU PROFIL ADMIN DI SIDEBAR --- */
+.sidebar-user-card {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 9px 12px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+}
+
+.sidebar-user-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #3498db;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+
+.sidebar-user-card:active {
+    transform: scale(0.98);
+}
+
+.sidebar-user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #ffffff;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(52, 152, 219, 0.35);
+}
+
+.sidebar-user-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.sidebar-user-name {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #ecf0f1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.sidebar-user-role {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: #bdc3c7;
+    margin-top: 3px;
+}
+
+.status-online-dot {
+    font-size: 7px;
+    color: #2ecc71;
+}
+
+.sidebar-user-action {
+    color: #95a5a6;
+    font-size: 13px;
+    transition: color 0.2s ease, transform 0.25s ease, background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+}
+
+.sidebar-user-card:hover .sidebar-user-action {
+    color: #3498db;
+    transform: rotate(30deg);
+    background: rgba(52, 152, 219, 0.15);
 }
 
 /* Tampilan Tombol Logout di Sidebar */
@@ -189,4 +277,133 @@ body {
 .btn-logout-sidebar:hover {
     background-color: #e74c3c;
     color: white;
+}
+
+/* --- STYLING MODAL PROFIL & GANTI PASSWORD --- */
+.profil-banner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+}
+
+.profil-avatar-large {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: white;
+    box-shadow: 0 4px 10px rgba(52, 152, 219, 0.25);
+    flex-shrink: 0;
+}
+
+.profil-banner-info h3 {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    color: #2c3e50;
+    font-weight: 700;
+}
+
+.profil-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.badge-role {
+    font-size: 11px;
+    background: #e8f4fd;
+    color: #2980b9;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid #d0e7fa;
+}
+
+.badge-status-online {
+    font-size: 11px;
+    background: #eafaf1;
+    color: #27ae60;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid #d4efdf;
+}
+
+.badge-status-online i {
+    font-size: 7px;
+}
+
+.profil-section-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #34495e;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #f1f2f6;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.input-password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-password-wrapper input {
+    width: 100%;
+    padding: 9px 36px 9px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    font-size: 13.5px;
+    color: #2c3e50;
+    box-sizing: border-box;
+    background-color: white;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-password-wrapper input:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.input-password-wrapper input.is-invalid {
+    border-color: #e74c3c !important;
+    background-color: #fff9f9;
+}
+
+.input-password-wrapper .toggle-input-pwd {
+    position: absolute;
+    right: 12px;
+    color: #95a5a6;
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.15s ease;
+    user-select: none;
+}
+
+.input-password-wrapper .toggle-input-pwd:hover {
+    color: #3498db;
+}
+
+.input-password-wrapper .toggle-input-pwd:active {
+    transform: scale(0.9);
 }

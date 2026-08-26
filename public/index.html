@@ -25,13 +25,27 @@
                 <button class="nav-btn active" id="nav-dashboard"><i class="fa-solid fa-chart-column"></i>
                     Dashboard</button>
                 <button class="nav-btn" id="nav-barang"><i class="fa-solid fa-clipboard-list"></i> Data Barang</button>
-                <button class="nav-btn" id="nav-transaksi"><i class="fa-solid fa-receipt"></i> Transaksi &
-                    Riwayat</button>
+                <button class="nav-btn" id="nav-transaksi"><i class="fa-solid fa-receipt"></i> Riwayat
+                    Transaksi</button>
             </nav>
         </div>
 
         <!-- Tombol Logout di Pojok Kiri Bawah -->
         <div class="sidebar-bottom">
+            <!-- Opsi Profil Admin & Ganti Password -->
+            <div class="sidebar-user-card" id="btn-buka-profil" role="button" tabindex="0"
+                title="Profil Admin & Ganti Password">
+                <div class="sidebar-user-avatar">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <div class="sidebar-user-info">
+                    <span class="sidebar-user-name" id="sidebar-user-name">admin</span>
+                </div>
+                <div class="sidebar-user-action" title="Ganti Password">
+                    <i class="fa-solid fa-key"></i>
+                </div>
+            </div>
+
             <button id="btn-logout" class="btn-logout-sidebar"><i class="fa-solid fa-right-from-bracket"></i>
                 Logout</button>
         </div>
@@ -65,7 +79,7 @@
             <div class="toolbar">
                 <div class="search-box">
                     <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                    <input type="text" id="input-pencarian" placeholder="Cari barang (nama/kode)...">
+                    <input type="text" id="input-pencarian" placeholder="Cari barang...">
                 </div>
                 <button type="button" id="btn-toggle-advanced-filter" class="btn-filter-toggle">
                     <i class="fa-solid fa-sliders"></i>
@@ -214,9 +228,9 @@
             </table>
         </section>
 
-        <!-- 3. HALAMAN TRANSAKSI & RIWAYAT -->
+        <!-- 3. HALAMAN RIWAYAT TRANSAKSI -->
         <section id="halaman-transaksi" class="halaman">
-            <h1>Pengelolaan Transaksi & Riwayat</h1>
+            <h1>Pengelolaan Riwayat Transaksi</h1>
             <div class="toolbar">
                 <div class="search-box">
                     <i class="fa-solid fa-magnifying-glass search-icon"></i>
@@ -237,7 +251,8 @@
                             title="Expor Data Riwayat Transaksi">
                             <i class="fa-solid fa-file-export"></i>
                             <span>Expor Data</span>
-                            <i class="fa-solid fa-chevron-down export-chevron-icon" id="chevron-export-riwayat-icon"></i>
+                            <i class="fa-solid fa-chevron-down export-chevron-icon"
+                                id="chevron-export-riwayat-icon"></i>
                         </button>
                         <div id="export-menu-riwayat-dropdown" class="export-menu-dropdown" style="display: none;">
                             <div class="export-menu-header">
@@ -841,6 +856,98 @@
                             <button type="button" class="btn-secondary" id="batal-hapus">Batal</button>
                             <button type="submit" class="btn-danger" id="btn-konfirmasi-hapus" disabled>
                                 <i class="fa-solid fa-ban"></i> Nonaktifkan Barang
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- MODAL PROFIL & GANTI PASSWORD ADMIN            -->
+        <!-- ============================================== -->
+        <div id="modal-profil-admin" class="modal">
+            <div class="modal-content modal-sub-content">
+                <div class="modal-header">
+                    <h2><i class="fa-solid fa-user-shield" style="color: #3498db;"></i> Profil & Keamanan Admin</h2>
+                    <span class="close-btn" id="tutup-modal-profil" title="Tutup">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <!-- Ringkasan Info Profil Admin -->
+                    <div class="profil-banner">
+                        <div class="profil-avatar-large">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+                        <div class="profil-banner-info">
+                            <h3 id="modal-profil-username">admin</h3>
+                        </div>
+                    </div>
+
+                    <!-- Form Ganti Password & Edit Profil -->
+                    <form id="form-ganti-password" novalidate>
+                        <div class="profil-section-title">
+                            <i class="fa-solid fa-user-gear"></i> Informasi Akun Admin
+                        </div>
+
+                        <div id="profil-error" class="form-error-message"></div>
+
+                        <div class="form-group">
+                            <label for="profil-input-username">
+                                <i class="fa-solid fa-user"></i> Username / Nama Akun <span class="required-star">*</span>
+                            </label>
+                            <input type="text" id="profil-input-username" placeholder="Masukkan username admin" required
+                                autocomplete="username">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pwd-lama">
+                                <i class="fa-solid fa-key"></i> Password Saat Ini <span class="required-star">*</span>
+                            </label>
+                            <div class="input-password-wrapper">
+                                <input type="password" id="pwd-lama" placeholder="Masukkan password saat ini untuk verifikasi" required
+                                    autocomplete="current-password">
+                                <i class="fa-solid fa-eye toggle-input-pwd" id="toggle-pwd-lama"
+                                    title="Lihat Password"></i>
+                            </div>
+                        </div>
+
+                        <div class="profil-section-title" style="margin-top: 18px;">
+                            <i class="fa-solid fa-lock"></i> Ganti Password (Opsional)
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pwd-baru">
+                                <i class="fa-solid fa-lock"></i> Password Baru
+                            </label>
+                            <div class="input-password-wrapper">
+                                <input type="password" id="pwd-baru" placeholder="Kosongkan jika tidak ingin ganti password"
+                                    autocomplete="new-password">
+                                <i class="fa-solid fa-eye toggle-input-pwd" id="toggle-pwd-baru"
+                                    title="Lihat Password"></i>
+                            </div>
+                            <span class="form-hint"
+                                style="font-size: 11.5px; color: #7f8c8d; margin-top: 4px; display: block;">
+                                <i class="fa-solid fa-circle-info"></i> Isi hanya jika ingin mengganti password (minimal 3 karakter).
+                            </span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pwd-konfirmasi">
+                                <i class="fa-solid fa-check-double"></i> Konfirmasi Password Baru
+                            </label>
+                            <div class="input-password-wrapper">
+                                <input type="password" id="pwd-konfirmasi" placeholder="Ulangi password baru"
+                                    autocomplete="new-password">
+                                <i class="fa-solid fa-eye toggle-input-pwd" id="toggle-pwd-konfirmasi"
+                                    title="Lihat Password"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-actions" style="margin-top: 20px;">
+                            <button type="button" class="btn-secondary" id="batal-profil">Batal</button>
+                            <button type="submit" class="btn-primary" id="btn-simpan-password"
+                                style="background-color: #27ae60;">
+                                <i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan
                             </button>
                         </div>
                     </form>
