@@ -9,6 +9,7 @@
     <!-- Memanggil file CSS dari dalam folder public/css/ -->
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/barang.css">
+    <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
@@ -57,19 +58,251 @@
 
         <!-- 1. HALAMAN DASHBOARD -->
         <section id="halaman-dashboard" class="halaman active">
-            <h1>Dashboard Overview</h1>
-            <div class="dashboard-grid">
-                <div class="card">
-                    <h3>Total Produk</h3>
-                    <p id="dash-total">0</p>
+            <!-- Header Dashboard -->
+            <div class="dashboard-header">
+                <div class="dashboard-header-title">
+                    <h1><i class="fa-solid fa-chart-line" style="color: #3b82f6;"></i> Ringkasan Eksekutif & Analisis Data</h1>
+                    <p>Pantau pergerakan stok, arus transaksi, dan kondisi kesehatan persediaan secara real-time.</p>
                 </div>
-                <div class="card warning">
-                    <h3>Stok Menipis</h3>
-                    <p id="dash-menipis">0</p>
+                <div class="dashboard-header-actions">
+                    <div class="dashboard-date-badge">
+                        <i class="fa-regular fa-calendar-days"></i>
+                        <span id="dash-current-date">Hari Ini</span>
+                    </div>
+                    <button type="button" class="btn-refresh-dash" id="btn-refresh-dashboard" title="Segarkan Data Dashboard">
+                        <i class="fa-solid fa-arrows-rotate"></i>
+                        <span>Refresh</span>
+                    </button>
                 </div>
-                <div class="card danger">
-                    <h3>Stok Habis</h3>
-                    <p id="dash-habis">0</p>
+            </div>
+
+            <!-- Ringkasan Performa Penjualan & Inventaris (Executive Insight Banner) -->
+            <div class="dashboard-insight-banner" id="dash-executive-summary">
+                <div class="insight-icon-wrapper">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <div class="insight-content">
+                    <div class="insight-header">
+                        <div class="insight-title">
+                            <span>Laporan Performa Penjualan & Kesehatan Stok</span>
+                        </div>
+                        <span class="insight-badge" id="dash-insight-badge">Menganalisis Data...</span>
+                    </div>
+                    <div class="insight-text" id="dash-insight-text">
+                        Memuat data analisis performa penjualan dan inventaris...
+                    </div>
+                    <div class="insight-pills">
+                        <div class="insight-pill-item" id="dash-pill-omset">
+                            <i class="fa-solid fa-coins"></i> Total Omset: <strong>Rp 0</strong>
+                        </div>
+                        <div class="insight-pill-item" id="dash-pill-top-item">
+                            <i class="fa-solid fa-crown"></i> Produk Terlaris: <strong>-</strong>
+                        </div>
+                        <div class="insight-pill-item" id="dash-pill-top-cat">
+                            <i class="fa-solid fa-layer-group"></i> Kategori Dominan: <strong>-</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Metric Cards (6 Cards) -->
+            <div class="kpi-grid">
+                <!-- 1. Total Produk Aktif -->
+                <div class="kpi-card blue">
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                    </div>
+                    <div class="kpi-info">
+                        <div class="kpi-label">Total Produk Aktif</div>
+                        <div class="kpi-value" id="dash-kpi-total-produk">0</div>
+                        <div class="kpi-subtext"><i class="fa-solid fa-cube"></i> Katalog barang terdaftar</div>
+                    </div>
+                </div>
+
+                <!-- 2. Total Nilai Aset Inventaris -->
+                <div class="kpi-card emerald">
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <div class="kpi-info">
+                        <div class="kpi-label">Nilai Aset Stok</div>
+                        <div class="kpi-value" id="dash-kpi-nilai-aset">Rp 0</div>
+                        <div class="kpi-subtext"><i class="fa-solid fa-calculator"></i> Valuasi total persediaan</div>
+                    </div>
+                </div>
+
+                <!-- 3. Total Barang Keluar / Penjualan -->
+                <div class="kpi-card indigo">
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-arrow-up-right-dots"></i>
+                    </div>
+                    <div class="kpi-info">
+                        <div class="kpi-label">Barang Keluar (Sales)</div>
+                        <div class="kpi-value" id="dash-kpi-total-keluar">0 Unit</div>
+                        <div class="kpi-subtext" id="dash-kpi-sub-keluar"><i class="fa-solid fa-money-bill-wave"></i> Total akumulasi</div>
+                    </div>
+                </div>
+
+                <!-- 4. Total Barang Masuk / Restock -->
+                <div class="kpi-card purple">
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-dolly"></i>
+                    </div>
+                    <div class="kpi-info">
+                        <div class="kpi-label">Barang Masuk (Restock)</div>
+                        <div class="kpi-value" id="dash-kpi-total-masuk">0 Unit</div>
+                        <div class="kpi-subtext"><i class="fa-solid fa-truck-ramp-box"></i> Pasokan diterima</div>
+                    </div>
+                </div>
+
+                <!-- 5. Stok Menipis -->
+                <div class="kpi-card amber">
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div class="kpi-info">
+                        <div class="kpi-label">Stok Menipis</div>
+                        <div class="kpi-value" id="dash-kpi-menipis">0 Item</div>
+                        <div class="kpi-subtext"><i class="fa-solid fa-clock-rotate-left"></i> Mendekati batas minimum</div>
+                    </div>
+                </div>
+
+                <!-- 6. Stok Habis -->
+                <div class="kpi-card rose">
+                    <div class="kpi-icon">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </div>
+                    <div class="kpi-info">
+                        <div class="kpi-label">Stok Habis (0)</div>
+                        <div class="kpi-value" id="dash-kpi-habis">0 Item</div>
+                        <div class="kpi-subtext"><i class="fa-solid fa-bell"></i> Perlu restock segera</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grafik & Visualisasi Data (Baris 1) -->
+            <div class="dashboard-charts-grid">
+                <!-- Grafik 1: Tren Transaksi -->
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div class="chart-card-title">
+                            <i class="fa-solid fa-chart-area"></i>
+                            <span>Tren Transaksi & Penjualan (Masuk vs Keluar)</span>
+                        </div>
+                        <span class="chart-period-badge"><i class="fa-solid fa-timeline"></i> Riwayat Terkini</span>
+                    </div>
+                    <div class="chart-canvas-container">
+                        <canvas id="chart-tren-transaksi"></canvas>
+                    </div>
+                </div>
+
+                <!-- Grafik 2: Komposisi Kategori -->
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div class="chart-card-title">
+                            <i class="fa-solid fa-chart-pie"></i>
+                            <span>Komposisi Stok per Kategori</span>
+                        </div>
+                        <span class="chart-period-badge"><i class="fa-solid fa-boxes-stacked"></i> Unit Stok</span>
+                    </div>
+                    <div class="chart-canvas-container">
+                        <canvas id="chart-kategori-stok"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grafik & Data Terkini (Baris 2) -->
+            <div class="dashboard-charts-row2">
+                <!-- Grafik 3: Top 5 Barang Terlaris -->
+                <div class="chart-card">
+                    <div class="chart-card-header">
+                        <div class="chart-card-title">
+                            <i class="fa-solid fa-fire" style="color: #ef4444;"></i>
+                            <span>Top 5 Produk Paling Banyak Keluar (Terlaris)</span>
+                        </div>
+                        <span class="chart-period-badge">Penjualan Terbanyak</span>
+                    </div>
+                    <div class="chart-canvas-container">
+                        <canvas id="chart-top-barang"></canvas>
+                    </div>
+                </div>
+
+                <!-- Preview Riwayat Transaksi Terkini -->
+                <div class="recent-activity-section">
+                    <div class="recent-activity-header">
+                        <h2><i class="fa-solid fa-clock-rotate-left" style="color: #3b82f6;"></i> Aktivitas Transaksi Terbaru</h2>
+                        <button type="button" class="btn-view-all-trx" id="btn-dash-view-all-trx">
+                            <span>Lihat Semua</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                    <div class="stock-alert-table-wrapper">
+                        <table class="stock-alert-table">
+                            <thead>
+                                <tr>
+                                    <th>ID Trx</th>
+                                    <th>Tanggal</th>
+                                    <th>Barang</th>
+                                    <th>Jenis</th>
+                                    <th>Jumlah</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-dash-recent-trx">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 20px; color: #94a3b8;">
+                                        Memuat data riwayat...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel Peringatan Stok Rendah & Habis (Explicit Monitor) -->
+            <div class="stock-alert-section" id="dashboard-low-stock-section">
+                <div class="stock-alert-header">
+                    <div class="stock-alert-title-wrap">
+                        <h2>
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Peringatan Stok Rendah & Habis</span>
+                        </h2>
+                        <span class="stock-alert-count-badge" id="dash-alert-count-badge">0 Perlu Tindakan</span>
+                    </div>
+                    <div class="stock-alert-tabs">
+                        <button type="button" class="stock-tab-btn active" data-tab="semua">Semua Perhatian</button>
+                        <button type="button" class="stock-tab-btn" data-tab="habis">Stok Habis (0)</button>
+                        <button type="button" class="stock-tab-btn" data-tab="menipis">Stok Menipis</button>
+                    </div>
+                </div>
+
+                <div class="stock-alert-table-wrapper" id="stock-alert-table-wrapper">
+                    <table class="stock-alert-table">
+                        <thead>
+                            <tr>
+                                <th>Kode</th>
+                                <th>Nama Barang & Harga</th>
+                                <th>Kategori</th>
+                                <th>Sisa Stok / Batas</th>
+                                <th>Status</th>
+                                <th>Tindakan Cepat</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-stock-alerts">
+                            <tr>
+                                <td colspan="6" style="text-align: center; padding: 20px; color: #94a3b8;">
+                                    Memuat data peringatan stok...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State jika seluruh stok aman -->
+                <div class="stock-alert-empty-state" id="stock-alert-empty-state" style="display: none;">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <h4>Kondisi Stok Sangat Baik</h4>
+                    <p>Semua barang aktif saat ini memiliki jumlah stok di atas batas minimum persediaan.</p>
                 </div>
             </div>
         </section>
@@ -1021,8 +1254,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
+    <!-- Memanggil library Chart.js untuk visualisasi data grafik -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
     <!-- Memanggil file JavaScript dari dalam folder public/js/ -->
     <script src="js/api.js"></script>
+    <script src="js/dashboard.js"></script>
     <script src="js/main.js"></script>
     <script src="js/transaksi.js"></script>
     <script src="js/barang.js"></script>

@@ -977,7 +977,6 @@ async function loadDanTampilkanData() {
             // Hitung data barang yang aktif untuk dashboard & transaksi
             const barangAktif = data.barang.filter(item => !item.is_deleted);
 
-            updateDashboard(barangAktif);
             renderTabelBarang();
 
             // Update dropdown pada halaman transaksi hanya untuk barang aktif
@@ -988,6 +987,14 @@ async function loadDanTampilkanData() {
 
         if (typeof renderTabelRiwayat === 'function' && data.riwayat) {
             renderTabelRiwayat(data.riwayat);
+        }
+
+        // Render Dashboard Visual & Analytics
+        if (typeof renderDashboard === 'function') {
+            renderDashboard(data.barang || [], data.riwayat || [], data.kategori || []);
+        } else if (data.barang) {
+            const barangAktif = data.barang.filter(item => !item.is_deleted);
+            updateDashboard(barangAktif);
         }
     }
 }
@@ -1145,14 +1152,23 @@ function renderCategoryTable() {
 }
 
 function updateDashboard(barang) {
+    if (typeof renderDashboard === 'function') {
+        const riwayat = typeof globalDataRiwayat !== 'undefined' ? globalDataRiwayat : [];
+        const kategori = typeof globalDataKategori !== 'undefined' ? globalDataKategori : [];
+        renderDashboard(globalDataBarang || barang || [], riwayat, kategori);
+        return;
+    }
     let stokMenipis = 0, stokHabis = 0;
-    barang.forEach(item => {
+    (barang || []).forEach(item => {
         if (item.stok === 0) stokHabis++;
         else if (item.stok <= item.batas_minimum) stokMenipis++;
     });
-    document.getElementById('dash-total').innerText = barang.length;
-    document.getElementById('dash-menipis').innerText = stokMenipis;
-    document.getElementById('dash-habis').innerText = stokHabis;
+    const elT = document.getElementById('dash-total');
+    const elM = document.getElementById('dash-menipis');
+    const elH = document.getElementById('dash-habis');
+    if (elT) elT.innerText = (barang || []).length;
+    if (elM) elM.innerText = stokMenipis;
+    if (elH) elH.innerText = stokHabis;
 }
 
 // Fungsi untuk mengambil data barang yang sudah tersaring oleh pencarian & advanced filtering
