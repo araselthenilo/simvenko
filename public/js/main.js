@@ -412,4 +412,62 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     }
+
+    // --- 5. FITUR SIMPLE THEME TOGGLE BUTTON (DARK / LIGHT MODE) ---
+    const btnThemeToggle = document.getElementById('btn-theme-toggle');
+    const themeModeIcon = document.getElementById('theme-mode-icon');
+
+    function applyTheme(themeName, showNotification = false) {
+        const isDark = themeName === 'dark';
+        
+        if (isDark) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            if (themeModeIcon) {
+                themeModeIcon.className = 'fa-solid fa-sun';
+            }
+            if (btnThemeToggle) {
+                btnThemeToggle.setAttribute('title', 'Beralih ke Mode Terang');
+                btnThemeToggle.setAttribute('aria-label', 'Beralih ke Mode Terang');
+            }
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+            if (themeModeIcon) {
+                themeModeIcon.className = 'fa-solid fa-moon';
+            }
+            if (btnThemeToggle) {
+                btnThemeToggle.setAttribute('title', 'Beralih ke Mode Gelap');
+                btnThemeToggle.setAttribute('aria-label', 'Beralih ke Mode Gelap');
+            }
+        }
+
+        // Broadcast event agar chart / komponen lain dapat sinkronisasi secara real-time
+        window.dispatchEvent(new CustomEvent('simvenko-theme-change', { detail: { theme: isDark ? 'dark' : 'light' } }));
+
+        if (showNotification && typeof showToast === 'function') {
+            showToast(`Tema beralih ke ${isDark ? 'Mode Gelap' : 'Mode Terang'}!`, 'info');
+        }
+    }
+
+    function initTheme() {
+        const savedTheme = localStorage.getItem('simvenko_theme');
+        if (savedTheme) {
+            applyTheme(savedTheme, false);
+        } else {
+            // Deteksi preferensi sistem pengguna jika belum pernah diset manual
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            applyTheme(prefersDark ? 'dark' : 'light', false);
+        }
+    }
+
+    if (btnThemeToggle) {
+        btnThemeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const nextTheme = isDark ? 'light' : 'dark';
+            localStorage.setItem('simvenko_theme', nextTheme);
+            applyTheme(nextTheme, true);
+        });
+    }
+
+    // Inisialisasi tema saat aplikasi dimuat
+    initTheme();
 });

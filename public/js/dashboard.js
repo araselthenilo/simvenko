@@ -319,6 +319,11 @@ function renderSalesExecutiveSummary(barangAktif, riwayatList, allBarang) {
     if (pillTopCat) pillTopCat.innerHTML = `<i class="fa-solid fa-layer-group"></i> Kategori Dominan: <strong>${topKategoriNama}</strong>`;
 }
 
+// Helper cek Dark Mode aktif
+function isDashboardDarkMode() {
+    return document.documentElement.getAttribute('data-theme') === 'dark';
+}
+
 // --- 3. GRAPHICS & CHARTS (CHART.JS) ---
 function renderCharts(barangAktif, riwayatList, allBarang) {
     if (typeof Chart === 'undefined') {
@@ -326,9 +331,11 @@ function renderCharts(barangAktif, riwayatList, allBarang) {
         return;
     }
 
-    // Chart.js Default Typography
+    const isDark = isDashboardDarkMode();
+
+    // Chart.js Default Typography & Color
     Chart.defaults.font.family = "'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif";
-    Chart.defaults.color = '#64748b';
+    Chart.defaults.color = isDark ? '#94a3b8' : '#64748b';
 
     // A. Chart 1: Tren Transaksi & Penjualan (Bulan / Tanggal)
     renderChartTrenTransaksi(riwayatList);
@@ -349,6 +356,8 @@ function renderChartTrenTransaksi(riwayatList) {
     if (chartTrenTransaksi) {
         chartTrenTransaksi.destroy();
     }
+
+    const isDark = isDashboardDarkMode();
 
     // Kelompokkan data per tanggal atau per bulan (Urutkan kronologis)
     const dateMap = new Map(); // 'YYYY-MM-DD' atau 'YYYY-MM' -> { masuk: X, keluar: Y }
@@ -395,12 +404,12 @@ function renderChartTrenTransaksi(riwayatList) {
                 {
                     label: 'Barang Keluar (Penjualan)',
                     data: dataKeluar,
-                    borderColor: '#2563eb',
-                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    borderColor: '#38bdf8',
+                    backgroundColor: 'rgba(56, 189, 248, 0.15)',
                     fill: true,
                     tension: 0.35,
                     borderWidth: 2.5,
-                    pointBackgroundColor: '#2563eb',
+                    pointBackgroundColor: '#38bdf8',
                     pointRadius: 4,
                     pointHoverRadius: 6
                 },
@@ -408,7 +417,7 @@ function renderChartTrenTransaksi(riwayatList) {
                     label: 'Barang Masuk (Restock)',
                     data: dataMasuk,
                     borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
                     fill: true,
                     tension: 0.35,
                     borderWidth: 2.5,
@@ -433,11 +442,16 @@ function renderChartTrenTransaksi(riwayatList) {
                         boxWidth: 12,
                         usePointStyle: true,
                         pointStyle: 'circle',
-                        font: { size: 12, weight: '600' }
+                        font: { size: 12, weight: '600' },
+                        color: isDark ? '#cbd5e1' : '#475569'
                     }
                 },
                 tooltip: {
-                    backgroundColor: '#1e293b',
+                    backgroundColor: isDark ? '#0b1120' : '#1e293b',
+                    titleColor: '#f8fafc',
+                    bodyColor: '#e2e8f0',
+                    borderColor: isDark ? '#334155' : 'transparent',
+                    borderWidth: isDark ? 1 : 0,
                     titleFont: { size: 13, weight: 'bold' },
                     bodyFont: { size: 12 },
                     padding: 10,
@@ -452,14 +466,18 @@ function renderChartTrenTransaksi(riwayatList) {
             scales: {
                 x: {
                     grid: { display: false },
-                    ticks: { font: { size: 11 } }
+                    ticks: { 
+                        font: { size: 11 },
+                        color: isDark ? '#94a3b8' : '#64748b'
+                    }
                 },
                 y: {
                     beginAtZero: true,
-                    grid: { color: '#f1f5f9' },
+                    grid: { color: isDark ? 'rgba(51, 65, 85, 0.4)' : '#f1f5f9' },
                     ticks: {
                         precision: 0,
-                        font: { size: 11 }
+                        font: { size: 11 },
+                        color: isDark ? '#94a3b8' : '#64748b'
                     }
                 }
             }
@@ -476,6 +494,7 @@ function renderChartKategoriStok(barangAktif) {
         chartKategoriStok.destroy();
     }
 
+    const isDark = isDashboardDarkMode();
     const catMap = new Map();
     barangAktif.forEach(item => {
         const kat = item.kategori || 'Tanpa Kategori';
@@ -488,7 +507,7 @@ function renderChartKategoriStok(barangAktif) {
 
     // Warna Palet Harmonious Modern
     const modernColors = [
-        '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899',
+        '#38bdf8', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899',
         '#06b6d4', '#6366f1', '#14b8a6', '#f97316', '#64748b'
     ];
 
@@ -501,7 +520,7 @@ function renderChartKategoriStok(barangAktif) {
                 labels: ['Belum Ada Stok'],
                 datasets: [{
                     data: [1],
-                    backgroundColor: ['#e2e8f0']
+                    backgroundColor: [isDark ? '#334155' : '#e2e8f0']
                 }]
             },
             options: {
@@ -524,7 +543,7 @@ function renderChartKategoriStok(barangAktif) {
                 data: dataValues,
                 backgroundColor: modernColors.slice(0, labels.length),
                 borderWidth: 2,
-                borderColor: '#ffffff',
+                borderColor: isDark ? '#151f32' : '#ffffff',
                 hoverOffset: 6
             }]
         },
@@ -540,11 +559,16 @@ function renderChartKategoriStok(barangAktif) {
                         usePointStyle: true,
                         pointStyle: 'circle',
                         font: { size: 11, weight: '500' },
+                        color: isDark ? '#cbd5e1' : '#475569',
                         padding: 12
                     }
                 },
                 tooltip: {
-                    backgroundColor: '#1e293b',
+                    backgroundColor: isDark ? '#0b1120' : '#1e293b',
+                    titleColor: '#f8fafc',
+                    bodyColor: '#e2e8f0',
+                    borderColor: isDark ? '#334155' : 'transparent',
+                    borderWidth: isDark ? 1 : 0,
                     titleFont: { size: 13, weight: 'bold' },
                     bodyFont: { size: 12 },
                     padding: 10,
@@ -572,6 +596,7 @@ function renderChartTopBarang(riwayatList, allBarang) {
         chartTopBarang.destroy();
     }
 
+    const isDark = isDashboardDarkMode();
     const masterList = (allBarang && allBarang.length > 0) 
         ? allBarang 
         : (typeof globalDataBarang !== 'undefined' ? globalDataBarang : []);
@@ -615,7 +640,7 @@ function renderChartTopBarang(riwayatList, allBarang) {
             datasets: [{
                 label: 'Unit Terjual / Keluar',
                 data: dataValues,
-                backgroundColor: '#3b82f6',
+                backgroundColor: isDark ? '#38bdf8' : '#3b82f6',
                 borderRadius: 6,
                 barPercentage: 0.6
             }]
@@ -627,7 +652,11 @@ function renderChartTopBarang(riwayatList, allBarang) {
             plugins: {
                 legend: { display: false },
                 tooltip: {
-                    backgroundColor: '#1e293b',
+                    backgroundColor: isDark ? '#0b1120' : '#1e293b',
+                    titleColor: '#f8fafc',
+                    bodyColor: '#e2e8f0',
+                    borderColor: isDark ? '#334155' : 'transparent',
+                    borderWidth: isDark ? 1 : 0,
                     titleFont: { size: 12, weight: 'bold' },
                     bodyFont: { size: 12 },
                     padding: 8,
@@ -642,12 +671,19 @@ function renderChartTopBarang(riwayatList, allBarang) {
             scales: {
                 x: {
                     beginAtZero: true,
-                    grid: { color: '#f1f5f9' },
-                    ticks: { precision: 0, font: { size: 11 } }
+                    grid: { color: isDark ? 'rgba(51, 65, 85, 0.4)' : '#f1f5f9' },
+                    ticks: { 
+                        precision: 0, 
+                        font: { size: 11 },
+                        color: isDark ? '#94a3b8' : '#64748b'
+                    }
                 },
                 y: {
                     grid: { display: false },
-                    ticks: { font: { size: 11.5, weight: '600' }, color: '#334155' }
+                    ticks: { 
+                        font: { size: 11.5, weight: '600' }, 
+                        color: isDark ? '#e2e8f0' : '#334155' 
+                    }
                 }
             }
         }
@@ -851,8 +887,8 @@ function renderRecentTransactions(riwayatList, allBarang) {
             <td><strong>${trx.id_transaksi}</strong></td>
             <td>${formatTanggalIndo(trx.tanggal)}</td>
             <td>
-                <div style="font-weight:600; color:#1e293b;">${namaBarang}</div>
-                <small style="color:#64748b; font-size:11px;">ID: ${trx.id_barang}</small>
+                <div style="font-weight:600; color:var(--text-primary);">${namaBarang}</div>
+                <small style="color:var(--text-muted); font-size:11px;">ID: ${trx.id_barang}</small>
             </td>
             <td>${jenisBadge}</td>
             <td><strong>${formatAngkaDash(trx.jumlah)}</strong> Unit</td>
@@ -888,4 +924,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (navTrx) navTrx.click();
         });
     }
+
+    const navDashboard = document.getElementById('nav-dashboard');
+    if (navDashboard) {
+        navDashboard.addEventListener('click', () => {
+            const masterBarang = typeof globalDataBarang !== 'undefined' ? globalDataBarang : [];
+            const masterRiwayat = typeof globalDataRiwayat !== 'undefined' ? globalDataRiwayat : [];
+            const masterKategori = typeof globalDataKategori !== 'undefined' ? globalDataKategori : [];
+            renderDashboard(masterBarang, masterRiwayat, masterKategori);
+        });
+    }
+});
+
+// Listener Event Pergantian Tema untuk Visualisasi Real-Time Chart.js
+window.addEventListener('simvenko-theme-change', () => {
+    const masterBarang = typeof globalDataBarang !== 'undefined' ? globalDataBarang : [];
+    const masterRiwayat = typeof globalDataRiwayat !== 'undefined' ? globalDataRiwayat : [];
+    const masterKategori = typeof globalDataKategori !== 'undefined' ? globalDataKategori : [];
+    renderDashboard(masterBarang, masterRiwayat, masterKategori);
 });
