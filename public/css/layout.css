@@ -409,13 +409,19 @@ body {
 }
 
 .login-box h2 {
-    margin-bottom: 20px;
+    margin-bottom: 8px;
     color: #2c3e50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
 }
 
 .login-box p {
     margin-bottom: 20px;
     color: #7f8c8d;
+    text-align: center;
 }
 
 .login-box .input-group {
@@ -507,8 +513,15 @@ body {
 
 .login-box button {
     width: 100%;
-    font-size: 16px;
+    font-size: 15px;
     padding: 12px;
+    height: auto;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 8px;
 }
 
 /* Mengatur sidebar agar tombol logout terdorong ke bawah */
