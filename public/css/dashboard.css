@@ -85,6 +85,44 @@
     transform: rotate(180deg);
 }
 
+.btn-export-dash-pdf {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.btn-export-dash-pdf i {
+    color: #ef4444;
+    font-size: 14px;
+    transition: transform 0.2s ease;
+}
+
+.btn-export-dash-pdf:hover {
+    background: #fef2f2;
+    color: #b91c1c;
+    border-color: #fca5a5;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.15);
+    transform: translateY(-1px);
+}
+
+.btn-export-dash-pdf:hover i {
+    transform: scale(1.15);
+}
+
+.btn-export-dash-pdf:active {
+    transform: translateY(0);
+}
+
 /* =========================================================
    SALES & INVENTORY PERFORMANCE SUMMARY BANNER
    ========================================================= */
@@ -679,6 +717,24 @@
     background: #1e293b;
     color: #38bdf8;
     border-color: #475569;
+}
+
+[data-theme="dark"] .btn-export-dash-pdf {
+    background: #151f32;
+    border-color: #334155;
+    color: #f8fafc;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+[data-theme="dark"] .btn-export-dash-pdf i {
+    color: #f87171;
+}
+
+[data-theme="dark"] .btn-export-dash-pdf:hover {
+    background: #231926;
+    border-color: #f87171;
+    color: #fca5a5;
+    box-shadow: 0 3px 10px rgba(239, 68, 68, 0.25);
 }
 
 /* KPI Stat Cards in Dark Mode */

@@ -897,7 +897,607 @@ function renderRecentTransactions(riwayatList, allBarang) {
     });
 }
 
-// Listener Tombol Refresh Dashboard & Navigasi Lihat Semua
+// --- 6. FUNGSI EKSPOR LAPORAN DASHBOARD KE PDF (jsPDF + autoTable) ---
+function exportDashboardPDF() {
+    const masterBarang = typeof globalDataBarang !== 'undefined' ? globalDataBarang : [];
+    const masterRiwayat = typeof globalDataRiwayat !== 'undefined' ? globalDataRiwayat : [];
+    const masterKategori = typeof globalDataKategori !== 'undefined' ? globalDataKategori : [];
+    const barangAktif = masterBarang.filter(item => !item.is_deleted);
+
+    if (barangAktif.length === 0 && masterRiwayat.length === 0) {
+        if (typeof showToast === 'function') {
+            showToast('Tidak ada data dashboard untuk diekspor ke PDF.', 'warning');
+        } else {
+            alert('Tidak ada data dashboard untuk diekspor ke PDF.');
+        }
+        return;
+    }
+
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+        if (typeof showToast === 'function') {
+            showToast('Library PDF belum termuat, mohon periksa koneksi internet Anda.', 'error');
+        } else {
+            alert('Library PDF belum termuat, mohon periksa koneksi internet Anda.');
+        }
+        return;
+    }
+
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        const sekarang = new Date();
+        const tglStr = sekarang.toLocaleDateString('id-ID', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+        const waktuStr = sekarang.toLocaleTimeString('id-ID', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        const adminUser = (typeof getExportAdminUser === 'function') 
+            ? getExportAdminUser() 
+            : (localStorage.getItem('simvenko_user') || 'Administrator');
+
+        const mapBarang = buildBarangInfoMap(masterBarang);
+
+        // Perhitungan KPI
+        let totalStokFisik = 0;
+        let totalNilaiAset = 0;
+        let stokHabisList = [];
+        let stokMenipisList = [];
+
+        barangAktif.forEach(item => {
+            const stok = Number(item.stok) || 0;
+            const harga = Number(item.harga) || 0;
+            const batas = Number(item.batas_minimum) || 0;
+
+            totalStokFisik += stok;
+            totalNilaiAset += (stok * harga);
+
+            if (stok === 0) {
+                stokHabisList.push(item);
+            } else if (stok <= batas) {
+                stokMenipisList.push(item);
+            }
+        });
+
+        const stokAmanCount = barangAktif.length - stokHabisList.length - stokMenipisList.length;
+
+        // Perhitungan Transaksi & Omset
+        let totalBarangKeluar = 0;
+        let totalOmsetKeluar = 0;
+        let totalBarangMasuk = 0;
+        const itemKeluarMap = new Map();
+        const kategoriStatsMap = new Map();
+
+        // Inisialisasi kategori dari master barang
+        barangAktif.forEach(b => {
+            const kat = (b.kategori && String(b.kategori).trim()) ? String(b.kategori).trim() : 'Umum';
+            if (!kategoriStatsMap.has(kat)) {
+                kategoriStatsMap.set(kat, {
+                    kategori: kat,
+                    skuCount: 0,
+                    totalStok: 0,
+                    qtyKeluar: 0,
+                    omsetKeluar: 0,
+                    nilaiAset: 0
+                });
+            }
+            const s = kategoriStatsMap.get(kat);
+            s.skuCount += 1;
+            s.totalStok += Number(b.stok) || 0;
+            s.nilaiAset += (Number(b.stok) || 0) * (Number(b.harga) || 0);
+        });
+
+        masterRiwayat.forEach(trx => {
+            const qty = Number(trx.jumlah) || 0;
+            const bInfo = getBarangInfoFromMap(mapBarang, trx.id_barang);
+            const harga = bInfo ? bInfo.harga : 0;
+            const kat = (bInfo && bInfo.kategori) ? bInfo.kategori : 'Umum';
+            const jenisLower = (trx.jenis || '').trim().toLowerCase();
+
+            if (jenisLower === 'keluar') {
+                totalBarangKeluar += qty;
+                const omsetTrx = (qty * harga);
+                totalOmsetKeluar += omsetTrx;
+
+                const keyId = (bInfo && bInfo.id_barang) ? bInfo.id_barang : (trx.id_barang || 'Item');
+                if (!itemKeluarMap.has(keyId)) {
+                    itemKeluarMap.set(keyId, {
+                        id_barang: keyId,
+                        nama: bInfo ? bInfo.nama : (trx.id_barang || keyId),
+                        kategori: kat,
+                        harga: harga,
+                        satuan: bInfo ? bInfo.satuan : 'Unit',
+                        qtyKeluar: 0,
+                        omsetKeluar: 0
+                    });
+                }
+                const itm = itemKeluarMap.get(keyId);
+                itm.qtyKeluar += qty;
+                itm.omsetKeluar += omsetTrx;
+
+                if (!kategoriStatsMap.has(kat)) {
+                    kategoriStatsMap.set(kat, {
+                        kategori: kat,
+                        skuCount: 0,
+                        totalStok: 0,
+                        qtyKeluar: 0,
+                        omsetKeluar: 0,
+                        nilaiAset: 0
+                    });
+                }
+                const statKat = kategoriStatsMap.get(kat);
+                statKat.qtyKeluar += qty;
+                statKat.omsetKeluar += omsetTrx;
+            } else if (jenisLower === 'masuk') {
+                totalBarangMasuk += qty;
+            }
+        });
+
+        // Urutkan Produk Terlaris (Top Selling Items)
+        const topSellingItems = Array.from(itemKeluarMap.values())
+            .sort((a, b) => b.qtyKeluar - a.qtyKeluar)
+            .slice(0, 5);
+
+        // Urutkan Data Kategori
+        const kategoriListSorted = Array.from(kategoriStatsMap.values())
+            .sort((a, b) => b.nilaiAset - a.nilaiAset);
+
+        // --- DRAW HEADER ---
+        // Header Background Banner
+        doc.setFillColor(30, 41, 59); // Slate 800
+        doc.rect(14, 12, 182, 22, 'F');
+
+        // Brand Accent Line
+        doc.setFillColor(59, 130, 246); // Blue 500
+        doc.rect(14, 12, 4, 22, 'F');
+
+        // Header Title Text
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(13);
+        doc.setTextColor(255, 255, 255);
+        doc.text('SIMVENKO - SISTEM MANAJEMEN INVENTARIS', 22, 20);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(203, 213, 225); // Slate 300
+        doc.text('LAPORAN RINGKASAN EKSEKUTIF & ANALISIS DATA DASHBOARD', 22, 28);
+
+        // Metadata Box
+        doc.setDrawColor(226, 232, 240);
+        doc.setFillColor(248, 250, 252);
+        doc.roundedRect(14, 37, 182, 16, 2, 2, 'FD');
+
+        doc.setFontSize(8.5);
+        doc.setTextColor(71, 85, 105); // Slate 600
+
+        // Kolom Metadata Kiri
+        doc.text(`Waktu Laporan : ${tglStr}, ${waktuStr} WIB`, 18, 43);
+        doc.text(`Administrator   : ${adminUser}`, 18, 49);
+
+        // Kolom Metadata Kanan
+        doc.text(`Total SKU Aktif : ${barangAktif.length} Jenis Produk (${formatAngkaDash(totalStokFisik)} Unit)`, 110, 43);
+        doc.text(`Status Analisis  : Data Real-Time Operasional Persediaan`, 110, 49);
+
+        let currentY = 57;
+
+        // --- SECTION 1: RINGKASAN INDIKATOR KUNCI (KPI OVERVIEW) ---
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10.5);
+        doc.setTextColor(30, 41, 59);
+        doc.text('1. Ringkasan Indikator Kunci Persediaan & Penjualan (KPI)', 14, currentY);
+
+        const kpiTableData = [
+            [
+                { content: 'Total Nilai Aset Inventaris', styles: { fontStyle: 'bold' } },
+                { content: formatRupiahDash(totalNilaiAset), styles: { fontStyle: 'bold', textColor: [5, 150, 105] } },
+                { content: 'Total Barang Masuk (Pengadaan)', styles: { fontStyle: 'bold' } },
+                { content: `${formatAngkaDash(totalBarangMasuk)} Unit`, styles: { fontStyle: 'bold' } }
+            ],
+            [
+                { content: 'Total Penjualan (Barang Keluar)', styles: { fontStyle: 'bold' } },
+                { content: `${formatAngkaDash(totalBarangKeluar)} Unit`, styles: { fontStyle: 'bold' } },
+                { content: 'Kondisi Stok Habis (Kritis)', styles: { fontStyle: 'bold' } },
+                { content: `${stokHabisList.length} Item`, styles: { fontStyle: 'bold', textColor: stokHabisList.length > 0 ? [220, 38, 38] : [22, 163, 74] } }
+            ],
+            [
+                { content: 'Akumulasi Omset Penjualan', styles: { fontStyle: 'bold' } },
+                { content: formatRupiahDash(totalOmsetKeluar), styles: { fontStyle: 'bold', textColor: [37, 99, 235] } },
+                { content: 'Kondisi Stok Menipis (Reorder)', styles: { fontStyle: 'bold' } },
+                { content: `${stokMenipisList.length} Item`, styles: { fontStyle: 'bold', textColor: stokMenipisList.length > 0 ? [217, 119, 6] : [22, 163, 74] } }
+            ]
+        ];
+
+        doc.autoTable({
+            body: kpiTableData,
+            startY: currentY + 3,
+            margin: { left: 14, right: 14 },
+            theme: 'grid',
+            styles: {
+                font: 'helvetica',
+                fontSize: 8.5,
+                cellPadding: 2.8,
+                textColor: [30, 41, 59],
+                lineColor: [226, 232, 240],
+                lineWidth: 0.3
+            },
+            alternateRowStyles: {
+                fillColor: [248, 250, 252]
+            },
+            columnStyles: {
+                0: { cellWidth: 50, fillColor: [241, 245, 249] },
+                1: { cellWidth: 41 },
+                2: { cellWidth: 50, fillColor: [241, 245, 249] },
+                3: { cellWidth: 41 }
+            }
+        });
+
+        currentY = doc.lastAutoTable.finalY + 8;
+
+        // --- SECTION 2: ANALISIS KINERJA & DISTRIBUSI KATEGORI ---
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10.5);
+        doc.setTextColor(30, 41, 59);
+        doc.text('2. Distribusi Persediaan & Kinerja per Kategori', 14, currentY);
+
+        const kategoriTableCols = [
+            { header: 'No', dataKey: 'no' },
+            { header: 'Nama Kategori', dataKey: 'kategori' },
+            { header: 'Varian SKU', dataKey: 'sku' },
+            { header: 'Stok Fisik', dataKey: 'stok' },
+            { header: 'Terjual (Unit)', dataKey: 'terjual' },
+            { header: 'Estimasi Omset', dataKey: 'omset' },
+            { header: 'Nilai Aset Persediaan', dataKey: 'aset' }
+        ];
+
+        const kategoriTableRows = kategoriListSorted.map((kat, idx) => ({
+            no: (idx + 1).toString(),
+            kategori: kat.kategori,
+            sku: `${kat.skuCount} SKU`,
+            stok: `${formatAngkaDash(kat.totalStok)} unit`,
+            terjual: `${formatAngkaDash(kat.qtyKeluar)} unit`,
+            omset: formatRupiahDash(kat.omsetKeluar),
+            aset: formatRupiahDash(kat.nilaiAset)
+        }));
+
+        // Tambahkan baris Total
+        kategoriTableRows.push({
+            no: '',
+            kategori: 'TOTAL KESELURUHAN',
+            sku: `${barangAktif.length} SKU`,
+            stok: `${formatAngkaDash(totalStokFisik)} unit`,
+            terjual: `${formatAngkaDash(totalBarangKeluar)} unit`,
+            omset: formatRupiahDash(totalOmsetKeluar),
+            aset: formatRupiahDash(totalNilaiAset)
+        });
+
+        doc.autoTable({
+            columns: kategoriTableCols,
+            body: kategoriTableRows,
+            startY: currentY + 3,
+            margin: { left: 14, right: 14 },
+            theme: 'striped',
+            styles: {
+                font: 'helvetica',
+                fontSize: 8,
+                cellPadding: 2.2,
+                textColor: [30, 41, 59]
+            },
+            headStyles: {
+                fillColor: [37, 99, 235], // Blue 600
+                textColor: [255, 255, 255],
+                fontStyle: 'bold',
+                fontSize: 8.5
+            },
+            columnStyles: {
+                no: { halign: 'center', cellWidth: 10 },
+                kategori: { fontStyle: 'bold', cellWidth: 38 },
+                sku: { halign: 'center', cellWidth: 22 },
+                stok: { halign: 'right', cellWidth: 24 },
+                terjual: { halign: 'right', cellWidth: 24 },
+                omset: { halign: 'right', cellWidth: 32 },
+                aset: { halign: 'right', cellWidth: 32 }
+            },
+            didParseCell: function(dataCell) {
+                if (dataCell.row.index === kategoriTableRows.length - 1) {
+                    dataCell.cell.styles.fontStyle = 'bold';
+                    dataCell.cell.styles.fillColor = [226, 232, 240];
+                }
+            }
+        });
+
+        currentY = doc.lastAutoTable.finalY + 8;
+
+        // Cek apakah sisa halaman mencukupi untuk section berikutnya
+        if (currentY > 230) {
+            doc.addPage();
+            currentY = 18;
+        }
+
+        // --- SECTION 3: 5 PRODUK TERLARIS (TOP FAST MOVING) ---
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10.5);
+        doc.setTextColor(30, 41, 59);
+        doc.text('3. Produk Terlaris & Fast-Moving (Top Selling)', 14, currentY);
+
+        if (topSellingItems.length > 0) {
+            const topCols = [
+                { header: 'Peringkat', dataKey: 'rank' },
+                { header: 'Kode', dataKey: 'kode' },
+                { header: 'Nama Produk', dataKey: 'nama' },
+                { header: 'Kategori', dataKey: 'kategori' },
+                { header: 'Harga Satuan', dataKey: 'harga' },
+                { header: 'Qty Terjual', dataKey: 'terjual' },
+                { header: 'Kontribusi Omset', dataKey: 'omset' }
+            ];
+
+            const topRows = topSellingItems.map((itm, idx) => ({
+                rank: `#${idx + 1}`,
+                kode: itm.id_barang,
+                nama: itm.nama,
+                kategori: itm.kategori,
+                harga: formatRupiahDash(itm.harga),
+                terjual: `${formatAngkaDash(itm.qtyKeluar)} ${itm.satuan}`,
+                omset: formatRupiahDash(itm.omsetKeluar)
+            }));
+
+            doc.autoTable({
+                columns: topCols,
+                body: topRows,
+                startY: currentY + 3,
+                margin: { left: 14, right: 14 },
+                theme: 'striped',
+                styles: {
+                    font: 'helvetica',
+                    fontSize: 8,
+                    cellPadding: 2.2,
+                    textColor: [30, 41, 59]
+                },
+                headStyles: {
+                    fillColor: [79, 70, 229], // Indigo 600
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    fontSize: 8.5
+                },
+                columnStyles: {
+                    rank: { halign: 'center', cellWidth: 16, fontStyle: 'bold' },
+                    kode: { cellWidth: 22, fontStyle: 'bold' },
+                    nama: { cellWidth: 46 },
+                    kategori: { cellWidth: 26 },
+                    harga: { halign: 'right', cellWidth: 24 },
+                    terjual: { halign: 'right', cellWidth: 22, fontStyle: 'bold' },
+                    omset: { halign: 'right', cellWidth: 26, fontStyle: 'bold' }
+                }
+            });
+
+            currentY = doc.lastAutoTable.finalY + 8;
+        } else {
+            doc.setFont('helvetica', 'italic');
+            doc.setFontSize(8.5);
+            doc.setTextColor(100, 116, 139);
+            doc.text('Belum ada data transaksi barang keluar/penjualan yang tercatat.', 14, currentY + 5);
+            currentY += 12;
+        }
+
+        // Cek halaman untuk Section 4
+        if (currentY > 225) {
+            doc.addPage();
+            currentY = 18;
+        }
+
+        // --- SECTION 4: PERINGATAN KESEHATAN STOK (STOK HABIS & MENIPIS) ---
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10.5);
+        doc.setTextColor(30, 41, 59);
+        doc.text('4. Peringatan Persediaan Kritis (Stok Habis & Menipis)', 14, currentY);
+
+        const allAlerts = [
+            ...stokHabisList.map(b => ({ ...b, alertType: 'Habis' })),
+            ...stokMenipisList.map(b => ({ ...b, alertType: 'Menipis' }))
+        ];
+
+        if (allAlerts.length > 0) {
+            const alertCols = [
+                { header: 'No', dataKey: 'no' },
+                { header: 'Kode', dataKey: 'kode' },
+                { header: 'Nama Produk', dataKey: 'nama' },
+                { header: 'Kategori', dataKey: 'kategori' },
+                { header: 'Sisa Stok', dataKey: 'stok' },
+                { header: 'Min. Stok', dataKey: 'min' },
+                { header: 'Status', dataKey: 'status' },
+                { header: 'Rekomendasi Tindakan', dataKey: 'rekomendasi' }
+            ];
+
+            const alertRows = allAlerts.map((item, idx) => {
+                const isHabis = item.alertType === 'Habis';
+                const saranRestock = Math.max(10, (item.batas_minimum || 5) * 2 - (item.stok || 0));
+                return {
+                    no: (idx + 1).toString(),
+                    kode: item.id_barang,
+                    nama: item.nama,
+                    kategori: item.kategori || 'Umum',
+                    stok: `${item.stok} ${item.satuan || 'Unit'}`,
+                    min: `${item.batas_minimum || 0}`,
+                    status: isHabis ? 'HABIS (0)' : 'MENIPIS',
+                    rekomendasi: `Segera Restock (+${saranRestock} ${item.satuan || 'Unit'})`
+                };
+            });
+
+            doc.autoTable({
+                columns: alertCols,
+                body: alertRows,
+                startY: currentY + 3,
+                margin: { left: 14, right: 14 },
+                theme: 'striped',
+                styles: {
+                    font: 'helvetica',
+                    fontSize: 8,
+                    cellPadding: 2.2,
+                    textColor: [30, 41, 59]
+                },
+                headStyles: {
+                    fillColor: [220, 38, 38], // Red 600
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    fontSize: 8.5
+                },
+                columnStyles: {
+                    no: { halign: 'center', cellWidth: 10 },
+                    kode: { cellWidth: 20, fontStyle: 'bold' },
+                    nama: { cellWidth: 42 },
+                    kategori: { cellWidth: 24 },
+                    stok: { halign: 'right', cellWidth: 20, fontStyle: 'bold' },
+                    min: { halign: 'center', cellWidth: 16 },
+                    status: { halign: 'center', cellWidth: 22, fontStyle: 'bold' },
+                    rekomendasi: { cellWidth: 28 }
+                },
+                didParseCell: function(dataCell) {
+                    if (dataCell.section === 'body' && dataCell.column.dataKey === 'status') {
+                        if (dataCell.cell.raw.includes('HABIS')) {
+                            dataCell.cell.styles.textColor = [220, 38, 38];
+                        } else {
+                            dataCell.cell.styles.textColor = [217, 119, 6];
+                        }
+                    }
+                }
+            });
+
+            currentY = doc.lastAutoTable.finalY + 8;
+        } else {
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8.5);
+            doc.setTextColor(22, 163, 74); // Green 600
+            doc.text('Kondisi persediaan aman: Tidak ada produk yang berada di bawah batas minimum stok saat ini.', 14, currentY + 5);
+            currentY += 12;
+        }
+
+        // Cek halaman untuk Section 5
+        if (currentY > 220) {
+            doc.addPage();
+            currentY = 18;
+        }
+
+        // --- SECTION 5: AKTIVITAS TRANSAKSI TERBARU (RECENT TRANSACTIONS) ---
+        const recentTrx = masterRiwayat.slice(0, 8);
+        if (recentTrx.length > 0) {
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10.5);
+            doc.setTextColor(30, 41, 59);
+            doc.text('5. Riwayat Aktivitas Transaksi Terkini', 14, currentY);
+
+            const trxCols = [
+                { header: 'ID Transaksi', dataKey: 'id' },
+                { header: 'Tanggal', dataKey: 'tgl' },
+                { header: 'Jenis', dataKey: 'jenis' },
+                { header: 'Nama Produk', dataKey: 'nama' },
+                { header: 'Jumlah', dataKey: 'jumlah' },
+                { header: 'Keterangan', dataKey: 'ket' }
+            ];
+
+            const trxRows = recentTrx.map(trx => {
+                const isMasuk = (trx.jenis || '').trim().toLowerCase() === 'masuk';
+                const bInfo = getBarangInfoFromMap(mapBarang, trx.id_barang);
+                return {
+                    id: trx.id_transaksi,
+                    tgl: formatTanggalIndo(trx.tanggal),
+                    jenis: isMasuk ? 'Masuk' : 'Keluar',
+                    nama: bInfo ? bInfo.nama : (trx.id_barang || '-'),
+                    jumlah: `${formatAngkaDash(trx.jumlah)} Unit`,
+                    ket: trx.keterangan || '-'
+                };
+            });
+
+            doc.autoTable({
+                columns: trxCols,
+                body: trxRows,
+                startY: currentY + 3,
+                margin: { left: 14, right: 14 },
+                theme: 'striped',
+                styles: {
+                    font: 'helvetica',
+                    fontSize: 8,
+                    cellPadding: 2.2,
+                    textColor: [30, 41, 59]
+                },
+                headStyles: {
+                    fillColor: [15, 118, 110], // Teal 700
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    fontSize: 8.5
+                },
+                columnStyles: {
+                    id: { cellWidth: 26, fontStyle: 'bold' },
+                    tgl: { cellWidth: 26 },
+                    jenis: { halign: 'center', cellWidth: 20, fontStyle: 'bold' },
+                    nama: { cellWidth: 44 },
+                    jumlah: { halign: 'right', cellWidth: 24, fontStyle: 'bold' },
+                    ket: { cellWidth: 42 }
+                },
+                didParseCell: function(dataCell) {
+                    if (dataCell.section === 'body' && dataCell.column.dataKey === 'jenis') {
+                        if (dataCell.cell.raw === 'Masuk') {
+                            dataCell.cell.styles.textColor = [22, 163, 74];
+                        } else {
+                            dataCell.cell.styles.textColor = [37, 99, 235];
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- NUMBER OF PAGES & FOOTER ON ALL PAGES ---
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            
+            // Thin Footer Divider Line
+            doc.setDrawColor(226, 232, 240);
+            doc.setLineWidth(0.4);
+            doc.line(14, 285, 196, 285);
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(7.5);
+            doc.setTextColor(148, 163, 184); // Slate 400
+            doc.text(
+                `SIMVENKO - Sistem Informasi Manajemen Inventaris | Dicetak oleh: ${adminUser}`,
+                14,
+                290
+            );
+            doc.text(
+                `Halaman ${i} dari ${totalPages}`,
+                196,
+                290,
+                { align: 'right' }
+            );
+        }
+
+        const padZero = (n) => String(n).padStart(2, '0');
+        const fileDateStr = `${sekarang.getFullYear()}${padZero(sekarang.getMonth() + 1)}${padZero(sekarang.getDate())}_${padZero(sekarang.getHours())}${padZero(sekarang.getMinutes())}`;
+        const fileName = `laporan_dashboard_eksekutif_${fileDateStr}.pdf`;
+
+        doc.save(fileName);
+
+        if (typeof showToast === 'function') {
+            showToast('Laporan dashboard berhasil diekspor ke format PDF!', 'success');
+        }
+    } catch (err) {
+        console.error('Gagal mengekspor PDF Dashboard:', err);
+        if (typeof showToast === 'function') {
+            showToast('Terjadi kesalahan saat memproses ekspor PDF dashboard.', 'error');
+        }
+    }
+}
+
+// Listener Tombol Refresh Dashboard, Ekspor PDF & Navigasi
 document.addEventListener('DOMContentLoaded', () => {
     initDashboardHeaderDate();
     initStockAlertTabs();
@@ -913,6 +1513,14 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 if (icon) icon.classList.remove('fa-spin');
             }, 600);
+        });
+    }
+
+    // Event Listener Tombol Ekspor PDF Dashboard
+    const btnExportDashPdf = document.getElementById('btn-export-dashboard-pdf');
+    if (btnExportDashPdf) {
+        btnExportDashPdf.addEventListener('click', () => {
+            exportDashboardPDF();
         });
     }
 
