@@ -864,7 +864,7 @@ function renderRecentTransactions(riwayatList, allBarang) {
     if (recent5.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="5" style="text-align:center; padding: 24px; color: #94a3b8;">
+                <td colspan="7" style="text-align:center; padding: 24px; color: #94a3b8;">
                     <i class="fa-solid fa-receipt" style="font-size:24px; margin-bottom:6px; display:block;"></i>
                     Belum ada riwayat transaksi yang tercatat.
                 </td>
@@ -892,6 +892,8 @@ function renderRecentTransactions(riwayatList, allBarang) {
             </td>
             <td>${jenisBadge}</td>
             <td><strong>${formatAngkaDash(trx.jumlah)}</strong> Unit</td>
+            <td>${trx.asal_tujuan || trx.keterangan || '-'}</td>
+            <td><span class="badge-admin-tag"><i class="fa-solid fa-user-shield"></i> ${trx.petugas || trx.admin || 'admin'}</span></td>
         `;
         tbody.appendChild(tr);
     });
@@ -1400,7 +1402,8 @@ function exportDashboardPDF() {
                 { header: 'Jenis', dataKey: 'jenis' },
                 { header: 'Nama Produk', dataKey: 'nama' },
                 { header: 'Jumlah', dataKey: 'jumlah' },
-                { header: 'Keterangan', dataKey: 'ket' }
+                { header: 'Asal / Tujuan', dataKey: 'asal' },
+                { header: 'Admin', dataKey: 'admin' }
             ];
 
             const trxRows = recentTrx.map(trx => {
@@ -1412,7 +1415,8 @@ function exportDashboardPDF() {
                     jenis: isMasuk ? 'Masuk' : 'Keluar',
                     nama: bInfo ? bInfo.nama : (trx.id_barang || '-'),
                     jumlah: `${formatAngkaDash(trx.jumlah)} Unit`,
-                    ket: trx.keterangan || '-'
+                    asal: trx.asal_tujuan || trx.keterangan || '-',
+                    admin: trx.petugas || trx.admin || 'Admin'
                 };
             });
 
@@ -1435,12 +1439,13 @@ function exportDashboardPDF() {
                     fontSize: 8.5
                 },
                 columnStyles: {
-                    id: { cellWidth: 26, fontStyle: 'bold' },
-                    tgl: { cellWidth: 26 },
-                    jenis: { halign: 'center', cellWidth: 20, fontStyle: 'bold' },
-                    nama: { cellWidth: 44 },
-                    jumlah: { halign: 'right', cellWidth: 24, fontStyle: 'bold' },
-                    ket: { cellWidth: 42 }
+                    id: { cellWidth: 24, fontStyle: 'bold' },
+                    tgl: { cellWidth: 24 },
+                    jenis: { halign: 'center', cellWidth: 18, fontStyle: 'bold' },
+                    nama: { cellWidth: 40 },
+                    jumlah: { halign: 'right', cellWidth: 20, fontStyle: 'bold' },
+                    asal: { cellWidth: 36 },
+                    admin: { halign: 'center', cellWidth: 20 }
                 },
                 didParseCell: function(dataCell) {
                     if (dataCell.section === 'body' && dataCell.column.dataKey === 'jenis') {

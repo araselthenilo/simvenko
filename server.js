@@ -726,7 +726,10 @@ app.post('/api/transaksi', async (req, res) => {
         const hari = String(d.getDate()).padStart(2, '0');
         tanggal = `${tahun}-${bulan}-${hari}`;
     }
-    const petugas = "Admin";
+    // Ambil username admin dari sesi login (Cookie) atau dari payload request
+    const token = req.cookies ? req.cookies[COOKIE_NAME] : null;
+    const authUsername = token ? verifyToken(token) : null;
+    const petugas = authUsername || trx.petugas || trx.admin || "admin";
     
     const connection = await pool.getConnection();
     try {

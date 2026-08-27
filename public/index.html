@@ -254,11 +254,13 @@
                                     <th>Barang</th>
                                     <th>Jenis</th>
                                     <th>Jumlah</th>
+                                    <th>Asal / Tujuan</th>
+                                    <th>Admin</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody-dash-recent-trx">
                                 <tr>
-                                    <td colspan="5" style="text-align: center; padding: 20px; color: #94a3b8;">
+                                    <td colspan="7" style="text-align: center; padding: 20px; color: #94a3b8;">
                                         Memuat data riwayat...
                                     </td>
                                 </tr>
@@ -603,8 +605,8 @@
                         <th>Jenis</th>
                         <th>Barang</th>
                         <th>Jumlah</th>
-                        <th>Asal/Tujuan</th>
-                        <th>Petugas</th>
+                        <th>Asal / Tujuan</th>
+                        <th>Admin</th>
                     </tr>
                 </thead>
                 <tbody id="tabel-riwayat-body">
@@ -638,15 +640,15 @@
                                     <div class="trx-type-icon"><i class="fa-solid fa-boxes-packing"></i></div>
                                     <div class="trx-type-info">
                                         <strong>Barang Masuk</strong>
-                                        <span>Restock / Pembelian</span>
+                                        <span>Stok bertambah (Pengadaan / Restock)</span>
                                     </div>
                                 </label>
                                 <label class="trx-type-card" id="card-trx-keluar">
                                     <input type="radio" name="trx-jenis-radio" value="keluar">
-                                    <div class="trx-type-icon"><i class="fa-solid fa-cart-arrow-down"></i></div>
+                                    <div class="trx-type-icon"><i class="fa-solid fa-cart-shopping"></i></div>
                                     <div class="trx-type-info">
                                         <strong>Barang Keluar</strong>
-                                        <span>Penjualan / Pemakaian</span>
+                                        <span>Stok berkurang (Penjualan / Distribusi)</span>
                                     </div>
                                 </label>
                             </div>
@@ -656,22 +658,20 @@
                         <!-- 2. Langkah Kedua: Tanggal Transaksi (Manual / Default Hari Ini) -->
                         <div class="form-group">
                             <label for="trx-tanggal">
-                                <i class="fa-solid fa-calendar-days"></i> Tanggal Transaksi <span
+                                <i class="fa-solid fa-calendar-day"></i> Tanggal Transaksi <span
                                     class="required-star">*</span>
                             </label>
                             <input type="date" id="trx-tanggal" required>
-                            <span class="form-hint">Default terisi tanggal hari ini. Ubah jika ingin mencatat transaksi
-                                tanggal khusus.</span>
+                            <span class="form-hint">Default terisi tanggal hari ini. Dapat diubah jika mencatat transaksi lampau.</span>
                         </div>
 
                         <!-- 3. Langkah Ketiga: Pilih Barang -->
                         <div class="form-group">
                             <label for="trx-barang">
-                                <i class="fa-solid fa-box-archive"></i> Pilih Barang <span
-                                    class="required-star">*</span>
+                                <i class="fa-solid fa-box-open"></i> Pilih Barang <span class="required-star">*</span>
                             </label>
-                            <select id="trx-barang" class="form-select" required>
-                                <option value="">-- Pilih Barang --</option>
+                            <select id="trx-barang" required>
+                                <option value="">-- Pilih Barang Terdaftar --</option>
                                 <!-- Daftar barang akan disuntikkan ke sini otomatis oleh JS -->
                             </select>
                         </div>
@@ -689,16 +689,25 @@
                             </div>
                         </div>
 
-                        <!-- 5. Langkah Kelima: Keterangan (Dinamis: Supplier vs Pembeli) -->
+                        <!-- 5. Langkah Kelima: Asal / Tujuan (Dinamis: Supplier vs Pembeli) -->
                         <div class="form-group">
                             <label for="trx-keterangan" id="label-trx-keterangan">
                                 <i class="fa-solid fa-truck-field" id="icon-trx-keterangan"></i> <span
-                                    id="text-trx-keterangan">Nama Supplier</span> <span class="required-star">*</span>
+                                    id="text-trx-keterangan">Asal Barang (Supplier)</span> <span class="required-star">*</span>
                             </label>
                             <input type="text" id="trx-keterangan" placeholder="Contoh: PT Sumber Makmur, CV Abadi Jaya"
                                 required>
                             <span class="form-hint" id="hint-trx-keterangan">Masukkan nama supplier atau asal penerimaan
                                 barang.</span>
+                        </div>
+
+                        <!-- 6. Langkah Keenam: Admin Pencatat Transaksi -->
+                        <div class="form-group">
+                            <label for="trx-admin-user">
+                                <i class="fa-solid fa-user-shield"></i> Admin Pencatat
+                            </label>
+                            <input type="text" id="trx-admin-user" class="input-readonly" readonly value="admin" title="Username Admin yang sedang login">
+                            <span class="form-hint">Otomatis dicatat atas nama akun admin yang sedang login.</span>
                         </div>
 
                         <div class="form-actions">

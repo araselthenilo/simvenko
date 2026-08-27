@@ -250,7 +250,7 @@ function renderTabelRiwayat(riwayatData) {
             <td>${namaBarang}</td>
             <td><strong>${trx.jumlah}</strong></td>
             <td>${trx.asal_tujuan || trx.keterangan || '-'}</td>
-            <td>${trx.petugas || 'Admin'}</td>
+            <td><span class="badge-admin-tag"><i class="fa-solid fa-user-shield"></i> ${trx.petugas || trx.admin || 'admin'}</span></td>
         `;
         tbody.appendChild(tr);
     });
@@ -405,6 +405,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (trxTanggal) {
             trxTanggal.value = getHariIniString(); // Set default hari ini saat modal dibuka
         }
+        const inputAdmin = document.getElementById('trx-admin-user');
+        if (inputAdmin) {
+            inputAdmin.value = localStorage.getItem('simvenko_user') || 'admin';
+        }
         setJenisTransaksi('masuk');
         updateLiveStockInfo();
         modalTransaksi.style.display = 'flex';
@@ -468,6 +472,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const idBarang = trxBarang ? trxBarang.value.trim() : '';
             const jumlahRaw = trxJumlah ? trxJumlah.value.trim() : '';
             const keterangan = trxKeterangan ? trxKeterangan.value.trim() : '';
+            const inputAdmin = document.getElementById('trx-admin-user');
+            const adminVal = (inputAdmin && inputAdmin.value.trim()) ? inputAdmin.value.trim() : (localStorage.getItem('simvenko_user') || 'admin');
 
             // Validasi kelengkapan form
             let fieldKosong = false;
@@ -516,7 +522,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 id_barang: idBarang,
                 jumlah,
                 asal_tujuan: keterangan,
-                keterangan
+                keterangan,
+                petugas: adminVal,
+                admin: adminVal
             };
 
             const hasil = await catatTransaksi(trxBaru);
@@ -826,7 +834,7 @@ function exportDataRiwayatPDF() {
             { header: 'Nama Barang', dataKey: 'barang' },
             { header: 'Qty', dataKey: 'jumlah' },
             { header: 'Asal / Tujuan', dataKey: 'asal' },
-            { header: 'Petugas', dataKey: 'petugas' }
+            { header: 'Admin', dataKey: 'petugas' }
         ];
 
         const tableRows = data.map((trx, index) => {
@@ -851,6 +859,7 @@ function exportDataRiwayatPDF() {
             columns: tableColumns,
             body: tableRows,
             startY: startYTable,
+            margin: { left: 14, right: 14 },
             theme: 'striped',
             styles: {
                 font: 'helvetica',
@@ -952,11 +961,12 @@ function exportDataRiwayatCSV() {
         const activeFilters = getActiveFiltersRiwayatSummary();
         const filterStr = activeFilters.length > 0 ? activeFilters.join(' | ') : 'Semua Riwayat (Tanpa Filter)';
 
+        // Metadata Header CSV
         const metaRows = [
-            ['"SIMVENKO - LAPORAN RIWAYAT TRANSAKSI"'],
-            [`"Tanggal Ekspor"`, `"${tglStr} ${waktuStr} WIB"`],
+            [`"SIMVENKO - LAPORAN RIWAYAT TRANSAKSI"`],
+            [`"Tanggal Cetak"`, `"${tglStr}, ${waktuStr} WIB"`],
             [`"Nama Admin"`, `"${adminUser}"`],
-            [`"Filter Diterapkan"`, `"${filterStr.replace(/"/g, '""')}"`],
+            [`"Filter Terpakai"`, `"${filterStr}"`],
             [`"Total Transaksi"`, `"${data.length} transaksi"`],
             [] // Baris pemisah kosong
         ];
@@ -970,7 +980,7 @@ function exportDataRiwayatCSV() {
             'Nama Barang',
             'Jumlah',
             'Asal / Tujuan',
-            'Petugas'
+            'Admin'
         ];
 
         const rows = data.map((trx, index) => {

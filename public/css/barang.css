@@ -384,6 +384,25 @@
     font-weight: 500;
 }
 
+/* --- BADGE ADMIN PENCATAT PADA RIWAYAT --- */
+.badge-admin-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+}
+
+.badge-admin-tag i {
+    color: #6366f1;
+    font-size: 11px;
+}
+
 /* ============================================== */
 /* --- MODAL KONFIRMASI EDIT (HARGA / STOK) --- */
 /* ============================================== */
@@ -1823,6 +1842,16 @@
     background-color: rgba(56, 189, 248, 0.15);
     border-color: rgba(56, 189, 248, 0.3);
     color: #7dd3fc;
+}
+
+[data-theme="dark"] .badge-admin-tag {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
+}
+
+[data-theme="dark"] .badge-admin-tag i {
+    color: #818cf8;
 }
 
 /* Row Highlights in Dark Mode */
