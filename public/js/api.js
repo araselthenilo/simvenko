@@ -2,6 +2,11 @@
 async function fetchData() {
     try {
         const response = await fetch('/api/data');
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            console.error("Gagal mengambil data dari server:", response.status, errData.error || response.statusText);
+            return null;
+        }
         return await response.json();
     } catch (error) {
         console.error("Gagal mengambil data:", error);

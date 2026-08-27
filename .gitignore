@@ -33,3 +33,6 @@ Thumbs.db
 .cache/
 dist/
 build/
+
+# Local DBs
+*.sql

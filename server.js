@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(cookieParser());
@@ -54,30 +54,25 @@ function verifyToken(token) {
 // ==============================================
 // INISIALISASI KONEKSI MYSQL
 // ==============================================
-let pool;
+const pool = mysql.createPool({
+    host: process.env.DB_HOST || 'localhost',
+    port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
+    user: process.env.DB_USER || 'root',      
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'simvenko_db',
+    ssl: (process.env.DB_SSL === 'true' || process.env.DB_SSL === true) ? { rejectUnauthorized: false } : undefined,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
 
 (async () => {
     try {
-        // Buat database jika belum ada
-        const initConn = await mysql.createConnection({
-            host: process.env.DB_HOST,
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD
-        });
-        await initConn.query(`CREATE DATABASE IF NOT EXISTS \`${process.env.DB_NAME}\``);
-        await initConn.end();
-
-        pool = mysql.createPool({
-            host: process.env.DB_HOST,
-            user: process.env.DB_USER,      
-            password: process.env.DB_PASSWORD, // Password diambil secara rahasia dari file .env
-            database: process.env.DB_NAME,
-            waitForConnections: true,
-            connectionLimit: 10,
-            queueLimit: 0
-        });
-
         console.log("Menghubungkan ke MySQL...");
+        // Test koneksi pool
+        const conn = await pool.getConnection();
+        conn.release();
+        console.log("Koneksi awal MySQL berhasil!");
 
         // Membuat tabel jika belum ada
         await pool.query(`
@@ -435,7 +430,8 @@ app.get('/api/data', async (req, res) => {
         `);
         res.json({ barang, riwayat, kategori });
     } catch (error) {
-        res.status(500).send("Error membaca database");
+        console.error("Error membaca database (/api/data):", error);
+        res.status(500).json({ error: error.message || "Error membaca database" });
     }
 });
 
