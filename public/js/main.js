@@ -433,37 +433,47 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // --- 4. TOMBOL LOGOUT ---
+    // --- 4. TOMBOL LOGOUT (SIDEBAR & MODAL PROFIL) ---
+    async function prosesLogoutAplikasi() {
+        const modalProfil = document.getElementById('modal-profil-admin');
+        if (modalProfil) modalProfil.style.display = 'none';
+
+        // Hapus sesi di server (clear cookie)
+        if (typeof logoutUser === 'function') {
+            await logoutUser();
+        }
+
+        // Hapus status login dari memori browser
+        localStorage.removeItem('simvenko_login');
+        localStorage.removeItem('simvenko_user');
+        localStorage.removeItem('simvenko_uname');
+        
+        // Sembunyikan halaman utama dan tampilkan kembali halaman login
+        sidebarUtama.style.display = 'none';
+        kontenUtama.style.display = 'none';
+        if (mainWrapper) mainWrapper.style.display = 'none';
+        closeMobileSidebar();
+        halamanLogin.style.display = 'flex';
+        
+        // Bersihkan form login dan reset toggle password serta pesan error
+        formLogin.reset();
+        hideLoginError();
+        if (loginPassword && togglePassword) {
+            loginPassword.type = 'password';
+            togglePassword.classList.add('fa-eye');
+            togglePassword.classList.remove('fa-eye-slash');
+            togglePassword.setAttribute('title', 'Lihat Password');
+        }
+    }
+
     const btnLogout = document.getElementById('btn-logout');
     if (btnLogout) {
-        btnLogout.addEventListener('click', async () => {
-            // Hapus sesi di server (clear cookie)
-            if (typeof logoutUser === 'function') {
-                await logoutUser();
-            }
+        btnLogout.addEventListener('click', prosesLogoutAplikasi);
+    }
 
-            // Hapus status login dari memori browser
-            localStorage.removeItem('simvenko_login');
-            localStorage.removeItem('simvenko_user');
-            localStorage.removeItem('simvenko_uname');
-            
-            // Sembunyikan halaman utama dan tampilkan kembali halaman login
-            sidebarUtama.style.display = 'none';
-            kontenUtama.style.display = 'none';
-            if (mainWrapper) mainWrapper.style.display = 'none';
-            closeMobileSidebar();
-            halamanLogin.style.display = 'flex';
-            
-            // Bersihkan form login dan reset toggle password serta pesan error
-            formLogin.reset();
-            hideLoginError();
-            if (loginPassword && togglePassword) {
-                loginPassword.type = 'password';
-                togglePassword.classList.add('fa-eye');
-                togglePassword.classList.remove('fa-eye-slash');
-                togglePassword.setAttribute('title', 'Lihat Password');
-            }
-        });
+    const btnLogoutModal = document.getElementById('btn-logout-modal');
+    if (btnLogoutModal) {
+        btnLogoutModal.addEventListener('click', prosesLogoutAplikasi);
     }
 
     // --- 5. FITUR SIMPLE THEME TOGGLE BUTTON (DARK / LIGHT MODE) ---
