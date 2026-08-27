@@ -1344,7 +1344,12 @@ function renderTabelBarang() {
 
 // --- FUNGSI MENDAPATKAN USER LOGIN & RINGKASAN FILTER AKTIF ---
 function getExportAdminUser() {
-    return localStorage.getItem('simvenko_user') || 'Admin';
+    const namaLengkap = localStorage.getItem('simvenko_user') || 'Administrator';
+    const uname = localStorage.getItem('simvenko_uname') || 'admin';
+    if (uname) {
+        return `${namaLengkap} (@${uname})`;
+    }
+    return namaLengkap;
 }
 
 function getActiveFiltersSummary() {

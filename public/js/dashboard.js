@@ -946,7 +946,11 @@ function exportDashboardPDF() {
 
         const adminUser = (typeof getExportAdminUser === 'function') 
             ? getExportAdminUser() 
-            : (localStorage.getItem('simvenko_user') || 'Administrator');
+            : (() => {
+                const nama = localStorage.getItem('simvenko_user') || 'Administrator';
+                const uname = localStorage.getItem('simvenko_uname') || 'admin';
+                return uname ? `${nama} (@${uname})` : nama;
+            })();
 
         const mapBarang = buildBarangInfoMap(masterBarang);
 

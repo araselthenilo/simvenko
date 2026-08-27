@@ -407,7 +407,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const inputAdmin = document.getElementById('trx-admin-user');
         if (inputAdmin) {
-            inputAdmin.value = localStorage.getItem('simvenko_user') || 'admin';
+            const nama = localStorage.getItem('simvenko_user') || 'Administrator';
+            const uname = localStorage.getItem('simvenko_uname') || 'admin';
+            inputAdmin.value = uname ? `${nama} (@${uname})` : nama;
         }
         setJenisTransaksi('masuk');
         updateLiveStockInfo();
@@ -772,7 +774,13 @@ function exportDataRiwayatPDF() {
             minute: '2-digit'
         });
 
-        const adminUser = (typeof getExportAdminUser === 'function') ? getExportAdminUser() : (localStorage.getItem('simvenko_user') || 'Admin');
+        const adminUser = (typeof getExportAdminUser === 'function') 
+            ? getExportAdminUser() 
+            : (() => {
+                const nama = localStorage.getItem('simvenko_user') || 'Administrator';
+                const uname = localStorage.getItem('simvenko_uname') || 'admin';
+                return uname ? `${nama} (@${uname})` : nama;
+            })();
         const activeFilters = getActiveFiltersRiwayatSummary();
         const filterStr = activeFilters.length > 0 ? activeFilters.join(' | ') : 'Semua Riwayat (Tanpa Filter)';
 
@@ -957,7 +965,13 @@ function exportDataRiwayatCSV() {
             minute: '2-digit'
         });
 
-        const adminUser = (typeof getExportAdminUser === 'function') ? getExportAdminUser() : (localStorage.getItem('simvenko_user') || 'Admin');
+        const adminUser = (typeof getExportAdminUser === 'function') 
+            ? getExportAdminUser() 
+            : (() => {
+                const nama = localStorage.getItem('simvenko_user') || 'Administrator';
+                const uname = localStorage.getItem('simvenko_uname') || 'admin';
+                return uname ? `${nama} (@${uname})` : nama;
+            })();
         const activeFilters = getActiveFiltersRiwayatSummary();
         const filterStr = activeFilters.length > 0 ? activeFilters.join(' | ') : 'Semua Riwayat (Tanpa Filter)';
 
