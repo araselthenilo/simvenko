@@ -54,7 +54,7 @@ function verifyToken(token) {
 // ==============================================
 // INISIALISASI KONEKSI MYSQL
 // ==============================================
-const pool = mysql.createPool({
+let poolConfig = {
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
     user: process.env.DB_USER || 'root',      
@@ -63,8 +63,24 @@ const pool = mysql.createPool({
     ssl: (process.env.DB_SSL === 'true' || process.env.DB_SSL === true) ? { rejectUnauthorized: false } : undefined,
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
-});
+    queueLimit: 0,
+    connectTimeout: 10000
+};
+
+// Jika disediakan format URL tunggal dari Aiven (Service URI / DATABASE_URL)
+if (process.env.DATABASE_URL || process.env.MYSQL_URL) {
+    const rawUri = process.env.DATABASE_URL || process.env.MYSQL_URL;
+    poolConfig = {
+        uri: rawUri,
+        ssl: { rejectUnauthorized: false },
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0,
+        connectTimeout: 10000
+    };
+}
+
+const pool = mysql.createPool(poolConfig);
 
 (async () => {
     try {
