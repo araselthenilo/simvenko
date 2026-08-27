@@ -439,11 +439,12 @@ function renderChartTrenTransaksi(riwayatList) {
                     position: 'top',
                     align: 'end',
                     labels: {
-                        boxWidth: 12,
+                        boxWidth: 8,
                         usePointStyle: true,
                         pointStyle: 'circle',
-                        font: { size: 12, weight: '600' },
-                        color: isDark ? '#cbd5e1' : '#475569'
+                        font: { size: 10.5, weight: '600' },
+                        color: isDark ? '#cbd5e1' : '#475569',
+                        padding: 8
                     }
                 },
                 tooltip: {
@@ -452,10 +453,10 @@ function renderChartTrenTransaksi(riwayatList) {
                     bodyColor: '#e2e8f0',
                     borderColor: isDark ? '#334155' : 'transparent',
                     borderWidth: isDark ? 1 : 0,
-                    titleFont: { size: 13, weight: 'bold' },
-                    bodyFont: { size: 12 },
-                    padding: 10,
-                    cornerRadius: 8,
+                    titleFont: { size: 11, weight: 'bold' },
+                    bodyFont: { size: 10.5 },
+                    padding: 6,
+                    cornerRadius: 6,
                     callbacks: {
                         label: function(context) {
                             return ` ${context.dataset.label}: ${context.raw} Unit`;
@@ -467,7 +468,7 @@ function renderChartTrenTransaksi(riwayatList) {
                 x: {
                     grid: { display: false },
                     ticks: { 
-                        font: { size: 11 },
+                        font: { size: 9.5 },
                         color: isDark ? '#94a3b8' : '#64748b'
                     }
                 },
@@ -476,7 +477,7 @@ function renderChartTrenTransaksi(riwayatList) {
                     grid: { color: isDark ? 'rgba(51, 65, 85, 0.4)' : '#f1f5f9' },
                     ticks: {
                         precision: 0,
-                        font: { size: 11 },
+                        font: { size: 9.5 },
                         color: isDark ? '#94a3b8' : '#64748b'
                     }
                 }
@@ -544,23 +545,23 @@ function renderChartKategoriStok(barangAktif) {
                 backgroundColor: modernColors.slice(0, labels.length),
                 borderWidth: 2,
                 borderColor: isDark ? '#151f32' : '#ffffff',
-                hoverOffset: 6
+                hoverOffset: 4
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '68%',
+            cutout: '72%',
             plugins: {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        boxWidth: 10,
+                        boxWidth: 8,
                         usePointStyle: true,
                         pointStyle: 'circle',
-                        font: { size: 11, weight: '500' },
+                        font: { size: 10, weight: '500' },
                         color: isDark ? '#cbd5e1' : '#475569',
-                        padding: 12
+                        padding: 6
                     }
                 },
                 tooltip: {
@@ -569,10 +570,10 @@ function renderChartKategoriStok(barangAktif) {
                     bodyColor: '#e2e8f0',
                     borderColor: isDark ? '#334155' : 'transparent',
                     borderWidth: isDark ? 1 : 0,
-                    titleFont: { size: 13, weight: 'bold' },
-                    bodyFont: { size: 12 },
-                    padding: 10,
-                    cornerRadius: 8,
+                    titleFont: { size: 11, weight: 'bold' },
+                    bodyFont: { size: 10.5 },
+                    padding: 6,
+                    cornerRadius: 6,
                     callbacks: {
                         label: function(context) {
                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
@@ -641,8 +642,8 @@ function renderChartTopBarang(riwayatList, allBarang) {
                 label: 'Unit Terjual / Keluar',
                 data: dataValues,
                 backgroundColor: isDark ? '#38bdf8' : '#3b82f6',
-                borderRadius: 6,
-                barPercentage: 0.6
+                borderRadius: 4,
+                barPercentage: 0.55
             }]
         },
         options: {
@@ -657,9 +658,9 @@ function renderChartTopBarang(riwayatList, allBarang) {
                     bodyColor: '#e2e8f0',
                     borderColor: isDark ? '#334155' : 'transparent',
                     borderWidth: isDark ? 1 : 0,
-                    titleFont: { size: 12, weight: 'bold' },
-                    bodyFont: { size: 12 },
-                    padding: 8,
+                    titleFont: { size: 11, weight: 'bold' },
+                    bodyFont: { size: 10.5 },
+                    padding: 6,
                     cornerRadius: 6,
                     callbacks: {
                         label: function(context) {
@@ -674,15 +675,15 @@ function renderChartTopBarang(riwayatList, allBarang) {
                     grid: { color: isDark ? 'rgba(51, 65, 85, 0.4)' : '#f1f5f9' },
                     ticks: { 
                         precision: 0, 
-                        font: { size: 11 },
+                        font: { size: 9.5 },
                         color: isDark ? '#94a3b8' : '#64748b'
                     }
                 },
                 y: {
                     grid: { display: false },
-                    ticks: { 
-                        font: { size: 11.5, weight: '600' }, 
-                        color: isDark ? '#e2e8f0' : '#334155' 
+                    ticks: {
+                        font: { size: 10 },
+                        color: isDark ? '#cbd5e1' : '#475569'
                     }
                 }
             }

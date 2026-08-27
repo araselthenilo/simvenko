@@ -1320,18 +1320,18 @@ function renderTabelBarang() {
             <td>
                 ${isDeleted
                     ? `
-                    <button class="btn-primary btn-restore-barang" data-id="${item.id_barang}" style="padding: 6px 12px; font-size: 12px; margin-right: 4px;" title="Aktifkan Kembali Barang">
+                    <button class="btn-primary btn-restore-barang" data-id="${item.id_barang}" style="padding: 4px 8px; font-size: 11px; height: 26px; margin-right: 4px;" title="Aktifkan Kembali Barang">
                         <i class="fa-solid fa-rotate-left"></i> Aktifkan
                     </button>
-                    <button class="btn-primary btn-edit" data-id="${item.id_barang}" style="background-color: #3498db; padding: 6px 12px; font-size: 12px;">
+                    <button class="btn-primary btn-edit" data-id="${item.id_barang}" style="background-color: #3498db; padding: 4px 8px; font-size: 11px; height: 26px;">
                         <i class="fa-solid fa-pen-to-square"></i> Edit
                     </button>
                     `
                     : `
-                    <button class="btn-primary btn-edit" data-id="${item.id_barang}" style="background-color: #3498db; padding: 6px 12px; font-size: 12px; margin-right: 4px;">
+                    <button class="btn-primary btn-edit" data-id="${item.id_barang}" style="background-color: #3498db; padding: 4px 8px; font-size: 11px; height: 26px; margin-right: 4px;">
                         <i class="fa-solid fa-pen-to-square"></i> Edit
                     </button>
-                    <button class="btn-primary btn-hapus" data-id="${item.id_barang}" style="background-color: #e74c3c; padding: 6px 12px; font-size: 12px;" title="Nonaktifkan Barang">
+                    <button class="btn-primary btn-hapus" data-id="${item.id_barang}" style="background-color: #e74c3c; padding: 4px 8px; font-size: 11px; height: 26px;" title="Nonaktifkan Barang">
                         <i class="fa-solid fa-ban"></i> Nonaktifkan
                     </button>
                     `

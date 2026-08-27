@@ -15,12 +15,19 @@
 
 <body>
 
-    <!-- SIDEBAR / MENU NAVIGASI -->
+    <!-- BACKDROP OVERLAY UNTUK SIDEBAR MOBILE -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
     <!-- SIDEBAR / MENU NAVIGASI -->
     <aside class="sidebar" id="sidebar-utama">
         <div class="sidebar-top">
-            <div class="logo">
-                <h2><i class="fa-solid fa-box"></i> SIMVENKO</h2>
+            <div class="sidebar-brand-header">
+                <div class="logo">
+                    <h2><i class="fa-solid fa-box"></i> SIMVENKO</h2>
+                </div>
+                <button type="button" class="btn-sidebar-close" id="btn-sidebar-close" aria-label="Tutup Menu Navigasi" title="Tutup Menu">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             <nav>
                 <button class="nav-btn active" id="nav-dashboard"><i class="fa-solid fa-chart-column"></i>
@@ -58,8 +65,31 @@
         </div>
     </aside>
 
-    <!-- AREA KONTEN UTAMA -->
-    <main class="content" id="konten-utama">
+    <!-- WRAPPER UTAMA KONTEN & MOBILE TOPBAR -->
+    <div class="main-wrapper" id="main-wrapper">
+        <!-- MOBILE TOPBAR HEADER (HANYA MUNCUL DI LAYAR <= 900PX) -->
+        <header class="mobile-topbar" id="mobile-topbar">
+            <div class="mobile-topbar-left">
+                <button type="button" class="btn-mobile-toggle" id="btn-mobile-toggle" aria-label="Buka Menu Navigasi" title="Buka Menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="mobile-brand">
+                    <i class="fa-solid fa-box mobile-logo-icon"></i>
+                    <span class="mobile-logo-text">SIMVENKO</span>
+                </div>
+            </div>
+            <div class="mobile-topbar-right">
+                <button type="button" class="btn-mobile-theme" id="btn-mobile-theme-toggle" aria-label="Beralih Mode Gelap" title="Beralih Tema">
+                    <i class="fa-solid fa-moon" id="mobile-theme-icon"></i>
+                </button>
+                <div class="mobile-user-avatar" id="btn-mobile-user-avatar" role="button" tabindex="0" title="Profil Admin">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- AREA KONTEN UTAMA -->
+        <main class="content" id="konten-utama">
 
         <!-- 1. HALAMAN DASHBOARD -->
         <section id="halaman-dashboard" class="halaman active">
@@ -455,22 +485,24 @@
                 </div>
             </div>
 
-            <table class="tabel-data">
-                <thead>
-                    <tr>
-                        <th>Kode</th>
-                        <th>Nama Barang</th>
-                        <th>Kategori</th>
-                        <th>Harga</th>
-                        <th>Stok</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="tabel-barang-body">
-                    <!-- Data barang akan disuntikkan ke sini oleh file barang.js -->
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="tabel-data">
+                    <thead>
+                        <tr>
+                            <th>Kode</th>
+                            <th>Nama Barang</th>
+                            <th>Kategori</th>
+                            <th>Harga</th>
+                            <th>Stok</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-barang-body">
+                        <!-- Data barang akan disuntikkan ke sini oleh file barang.js -->
+                    </tbody>
+                </table>
+            </div>
         </section>
 
         <!-- 3. HALAMAN RIWAYAT TRANSAKSI -->
@@ -597,22 +629,24 @@
                 </div>
             </div>
 
-            <table class="tabel-data">
-                <thead>
-                    <tr>
-                        <th>Kode Transaksi</th>
-                        <th>Tanggal</th>
-                        <th>Jenis</th>
-                        <th>Barang</th>
-                        <th>Jumlah</th>
-                        <th>Asal / Tujuan</th>
-                        <th>Admin</th>
-                    </tr>
-                </thead>
-                <tbody id="tabel-riwayat-body">
-                    <!-- Data riwayat akan disuntikkan ke sini -->
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="tabel-data">
+                    <thead>
+                        <tr>
+                            <th>Kode Transaksi</th>
+                            <th>Tanggal</th>
+                            <th>Jenis</th>
+                            <th>Barang</th>
+                            <th>Jumlah</th>
+                            <th>Asal / Tujuan</th>
+                            <th>Admin</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabel-riwayat-body">
+                        <!-- Data riwayat akan disuntikkan ke sini -->
+                    </tbody>
+                </table>
+            </div>
         </section>
 
         <!-- ============================================== -->
@@ -1240,7 +1274,8 @@
             </div>
         </div>
 
-    </main>
+        </main>
+    </div>
 
     <!-- Container Notifikasi Toast -->
     <div id="toast-container" class="toast-container"></div>

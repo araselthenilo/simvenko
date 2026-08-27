@@ -3,10 +3,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     const halamanLogin = document.getElementById('halaman-login');
     const sidebarUtama = document.getElementById('sidebar-utama');
     const kontenUtama = document.getElementById('konten-utama');
+    const mainWrapper = document.getElementById('main-wrapper');
     const formLogin = document.getElementById('form-login');
     const loginError = document.getElementById('login-error');
     const usernameInput = document.getElementById('login-username');
     const passwordInput = document.getElementById('login-password');
+
+    // Komponen Navigasi Mobile & Drawer
+    const btnMobileToggle = document.getElementById('btn-mobile-toggle');
+    const btnSidebarClose = document.getElementById('btn-sidebar-close');
+    const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+    const btnMobileThemeToggle = document.getElementById('btn-mobile-theme-toggle');
+    const mobileThemeIcon = document.getElementById('mobile-theme-icon');
+    const btnMobileUserAvatar = document.getElementById('btn-mobile-user-avatar');
+
+    function openMobileSidebar() {
+        if (sidebarUtama) sidebarUtama.classList.add('open');
+        if (sidebarBackdrop) sidebarBackdrop.classList.add('active');
+        if (btnMobileToggle) btnMobileToggle.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileSidebar() {
+        if (sidebarUtama) sidebarUtama.classList.remove('open');
+        if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
+        if (btnMobileToggle) btnMobileToggle.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+    }
+
+    if (btnMobileToggle) btnMobileToggle.addEventListener('click', openMobileSidebar);
+    if (btnSidebarClose) btnSidebarClose.addEventListener('click', closeMobileSidebar);
+    if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', closeMobileSidebar);
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 900) {
+            closeMobileSidebar();
+        }
+    });
 
     function showLoginError(pesan) {
         if (loginError) {
@@ -128,6 +161,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         halamanLogin.style.display = 'none'; // Sembunyikan layar login
         sidebarUtama.style.display = 'flex'; // Munculkan sidebar
         kontenUtama.style.display = 'block'; // Munculkan konten utama
+        if (mainWrapper) mainWrapper.style.display = 'flex';
         updateProfilDisplay(userObj);
     }
 
@@ -147,6 +181,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const idTarget = button.id.replace('nav-', 'halaman-');
             const targetEl = document.getElementById(idTarget);
             if (targetEl) targetEl.classList.add('active');
+            
+            // Tutup sidebar otomatis di perangkat mobile saat navigasi dipilih
+            closeMobileSidebar();
         });
     });
 
@@ -215,6 +252,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function bukaModalProfilHandler() {
+        closeMobileSidebar();
         updateProfilDisplay();
         hideProfilError();
         if (formGantiPassword) formGantiPassword.reset();
@@ -248,6 +286,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    if (btnMobileUserAvatar) {
+        btnMobileUserAvatar.addEventListener('click', bukaModalProfilHandler);
+        btnMobileUserAvatar.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                bukaModalProfilHandler();
+            }
+        });
+    }
+
     if (tutupModalProfil) tutupModalProfil.addEventListener('click', tutupModalProfilHandler);
     if (batalProfil) batalProfil.addEventListener('click', tutupModalProfilHandler);
 
@@ -260,8 +308,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Tutup jika tekan tombol Escape
     window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modalProfil && modalProfil.style.display === 'flex') {
-            tutupModalProfilHandler();
+        if (e.key === 'Escape') {
+            if (modalProfil && modalProfil.style.display === 'flex') {
+                tutupModalProfilHandler();
+            }
+            closeMobileSidebar();
         }
     });
 
@@ -399,6 +450,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Sembunyikan halaman utama dan tampilkan kembali halaman login
             sidebarUtama.style.display = 'none';
             kontenUtama.style.display = 'none';
+            if (mainWrapper) mainWrapper.style.display = 'none';
+            closeMobileSidebar();
             halamanLogin.style.display = 'flex';
             
             // Bersihkan form login dan reset toggle password serta pesan error
@@ -425,18 +478,32 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (themeModeIcon) {
                 themeModeIcon.className = 'fa-solid fa-sun';
             }
+            if (mobileThemeIcon) {
+                mobileThemeIcon.className = 'fa-solid fa-sun';
+            }
             if (btnThemeToggle) {
                 btnThemeToggle.setAttribute('title', 'Beralih ke Mode Terang');
                 btnThemeToggle.setAttribute('aria-label', 'Beralih ke Mode Terang');
+            }
+            if (btnMobileThemeToggle) {
+                btnMobileThemeToggle.setAttribute('title', 'Beralih ke Mode Terang');
+                btnMobileThemeToggle.setAttribute('aria-label', 'Beralih ke Mode Terang');
             }
         } else {
             document.documentElement.removeAttribute('data-theme');
             if (themeModeIcon) {
                 themeModeIcon.className = 'fa-solid fa-moon';
             }
+            if (mobileThemeIcon) {
+                mobileThemeIcon.className = 'fa-solid fa-moon';
+            }
             if (btnThemeToggle) {
                 btnThemeToggle.setAttribute('title', 'Beralih ke Mode Gelap');
                 btnThemeToggle.setAttribute('aria-label', 'Beralih ke Mode Gelap');
+            }
+            if (btnMobileThemeToggle) {
+                btnMobileThemeToggle.setAttribute('title', 'Beralih ke Mode Gelap');
+                btnMobileThemeToggle.setAttribute('aria-label', 'Beralih ke Mode Gelap');
             }
         }
 
@@ -459,13 +526,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    function toggleThemeHandler() {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const nextTheme = isDark ? 'light' : 'dark';
+        localStorage.setItem('simvenko_theme', nextTheme);
+        applyTheme(nextTheme, true);
+    }
+
     if (btnThemeToggle) {
-        btnThemeToggle.addEventListener('click', () => {
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            const nextTheme = isDark ? 'light' : 'dark';
-            localStorage.setItem('simvenko_theme', nextTheme);
-            applyTheme(nextTheme, true);
-        });
+        btnThemeToggle.addEventListener('click', toggleThemeHandler);
+    }
+
+    if (btnMobileThemeToggle) {
+        btnMobileThemeToggle.addEventListener('click', toggleThemeHandler);
     }
 
     // Inisialisasi tema saat aplikasi dimuat
