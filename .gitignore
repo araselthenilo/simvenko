@@ -36,3 +36,7 @@ build/
 
 # Local DBs
 *.sql
+
+# Local Scripts
+*.bat
+*.sh
